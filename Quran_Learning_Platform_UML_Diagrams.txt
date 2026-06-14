@@ -1,0 +1,836 @@
+================================================================================
+QURAN LEARNING PLATFORM - UML DIAGRAMS & SYSTEM ARCHITECTURE
+Software Design Document - Text Version
+Document Version 1.0 | June 2026
+Classification: Confidential
+================================================================================
+
+TABLE OF CONTENTS
+-----------------
+1. Use Case Diagram (Page 3)
+2. Class Diagram - Core Domain Model (Page 4)
+3. Sequence Diagram - Audio Submission & Assessment (Page 5)
+4. Activity Diagram - Student Exam Taking Process (Page 6)
+5. Component Diagram - System Architecture (Page 7)
+6. State Diagram - Memorization Submission Lifecycle (Page 8)
+7. Deployment Diagram - Production Infrastructure (Page 9)
+8. Entity-Relationship Diagram - Database Schema (Page 10)
+9. Communication Diagram - Live Class Session (Page 11)
+10. Package Diagram - Module Organization (Page 12)
+
+================================================================================
+1. USE CASE DIAGRAM (Page 3)
+================================================================================
+
+SYSTEM BOUNDARY: "Quran Learning Platform"
+
+ACTORS:
+-------
+- Administrator (left side)
+- Teacher (left side)
+- Student (left side)
+- External Services (right side)
+
+ADMINISTRATOR USE CASES:
+------------------------
+- Manage Users & RBAC
+- Manage Content & Curriculum
+- System Config & Analytics
+
+TEACHER USE CASES:
+------------------
+- Create/Assign Memorization Tasks
+- Create & Grade Examinations
+  <<include>> Auto-Grading (for MCQ/TF)
+- Review Audio Submissions
+- Schedule Live Sessions
+- Send/Receive Messages
+- View Notifications & Announcements
+- Track Progress & Reports
+
+STUDENT USE CASES:
+------------------
+- View Tasks & Submit Audio
+- Take Exams & View Results
+- Access Tajweed Lessons
+- Join Live Classes
+- Send/Receive Messages
+- View Notifications & Announcements
+- Track Progress & Reports
+  <<extend>> Progress Tracking extends View Tasks
+
+EXTERNAL SERVICES:
+------------------
+- Push Notifications (FCM) - connected to System Config
+
+RELATIONSHIPS:
+--------------
+- Solid lines: Association (actor to use case)
+- Dashed lines: Include/Extend relationships
+- Dashed lines to External: External service calls
+
+================================================================================
+2. CLASS DIAGRAM - CORE DOMAIN MODEL (Page 4)
+================================================================================
+
+CLASSES AND ATTRIBUTES:
+-----------------------
+
+CLASS: User
+  Attributes:
+    - id: UUID
+    - email: String
+    - password_hash: String
+    - full_name: String
+    - role: RoleEnum (admin, teacher, student)
+    - phone: String
+    - avatar_url: String
+    - is_active: Boolean
+    - created_at: Timestamp
+  Methods:
+    + authenticate()
+    + updateProfile()
+    + resetPassword()
+    + deactivate()
+
+CLASS: StudentProfile
+  Attributes:
+    - id: UUID
+    - user_id: UUID [FK]
+    - enrollment_date: Date
+    - teacher_id: UUID [FK]
+    - class_id: UUID [FK]
+    - current_juz: Integer
+    - current_surah: Integer
+    - notes: Text
+  Methods:
+    + getProgress()
+    + updateLevel()
+    + getTeacher()
+    + getClass()
+
+CLASS: Class
+  Attributes:
+    - id: UUID
+    - name: String
+    - description: Text
+    - teacher_id: UUID [FK]
+    - created_by: UUID [FK]
+    - created_at: Timestamp
+  Methods:
+    + addStudent()
+    + removeStudent()
+    + getStudents()
+    + getTeacher()
+
+CLASS: MemorizationTask
+  Attributes:
+    - id: UUID
+    - teacher_id: UUID [FK]
+    - student_id: UUID [FK]
+    - task_type: TaskType (new, revision)
+    - surah_number: Integer
+    - ayah_start: Integer
+    - ayah_end: Integer
+    - assigned_date: Date
+    - due_date: Date
+    - status: Status (assigned, completed, overdue)
+    - notes: Text
+  Methods:
+    + createTask()
+    + assignToStudent()
+    + markComplete()
+    + getHistory()
+
+CLASS: MemorizationSubmission
+  Attributes:
+    - id: UUID
+    - task_id: UUID [FK]
+    - student_id: UUID [FK]
+    - audio_url: String
+    - submitted_at: Timestamp
+    - status: SubmissionStatus (pending, reviewed, revision_needed)
+    - teacher_notes: Text
+  Methods:
+    + submitAudio()
+    + updateStatus()
+    + getAssessment()
+
+CLASS: Assessment
+  Attributes:
+    - id: UUID
+    - submission_id: UUID [FK]
+    - memorization_score: Integer
+    - tajweed_score: Integer
+    - fluency_score: Integer
+    - overall_score: Integer
+    - feedback: Text
+    - assessed_at: Timestamp
+  Methods:
+    + evaluate()
+    + calculateOverall()
+    + getTimestampedComments()
+
+CLASS: Exam
+  Attributes:
+    - id: UUID
+    - title: String
+    - description: Text
+    - exam_type: ExamType (weekly, monthly)
+    - teacher_id: UUID [FK]
+    - start_time: Timestamp
+    - end_time: Timestamp
+    - time_limit: Integer
+    - passing_score: Integer
+    - status: ExamStatus (draft, published, closed)
+  Methods:
+    + createExam()
+    + addQuestion()
+    + assignToStudents()
+    + publishResults()
+
+CLASS: Question
+  Attributes:
+    - id: UUID
+    - exam_id: UUID [FK]
+    - question_type: QType (mc, tf, short)
+    - question_text: Text
+    - options: JSON
+    - correct_answer: String
+    - points: Integer
+    - order_index: Integer
+  Methods:
+    + validateAnswer()
+    + getCorrectAnswer()
+    + randomizeOptions()
+
+CLASS: ExamSubmission
+  Attributes:
+    - id: UUID
+    - exam_id: UUID [FK]
+    - student_id: UUID [FK]
+    - started_at: Timestamp
+    - submitted_at: Timestamp
+    - total_score: Integer
+    - status: SubmissionStatus
+  Methods:
+    + startExam()
+    + submitAnswer()
+    + autoGrade()
+    + getResults()
+
+CLASS: LiveSession
+  Attributes:
+    - id: UUID
+    - title: String
+    - description: Text
+    - session_type: SessionType (memorization, tajweed, educational)
+    - teacher_id: UUID [FK]
+    - scheduled_at: Timestamp
+    - duration: Integer
+    - max_participants: Integer
+    - meeting_url: String
+    - status: SessionStatus (scheduled, active, completed)
+  Methods:
+    + schedule()
+    + startSession()
+    + endSession()
+    + recordAttendance()
+
+CLASS: Notification
+  Attributes:
+    - id: UUID
+    - sender_id: UUID [FK]
+    - recipient_id: UUID [FK]
+    - type: NotifType (announcement, private, auto)
+    - title: String
+    - message: Text
+    - is_read: Boolean
+    - created_at: Timestamp
+  Methods:
+    + send()
+    + markRead()
+    + getUnreadCount()
+    + schedule()
+
+CLASS: TajweedLesson
+  Attributes:
+    - id: UUID
+    - title: String
+    - description: Text
+    - category: TajweedCategory
+    - content: Text
+    - video_url: String
+    - pdf_url: String
+    - order_index: Integer
+    - created_by: UUID [FK]
+  Methods:
+    + createLesson()
+    + updateContent()
+    + trackCompletion()
+    + getResources()
+
+RELATIONSHIPS:
+--------------
+- User 1 -- 1 StudentProfile (has)
+- User 1 -- * MemorizationTask (creates)
+- User 1 -- * Exam (creates)
+- User 1 -- * LiveSession (hosts)
+- User 1 -- * Notification (sends)
+- User 1 -- * TajweedLesson (creates)
+- StudentProfile * -- 1 Class (belongs to)
+- MemorizationTask 1 -- * MemorizationSubmission (has)
+- MemorizationSubmission 1 -- 1 Assessment (evaluated by)
+- Exam 1 -- * Question (contains)
+- Exam 1 -- * ExamSubmission (receives)
+
+================================================================================
+3. SEQUENCE DIAGRAM - AUDIO SUBMISSION & ASSESSMENT (Page 5)
+================================================================================
+
+PARTICIPANTS (left to right):
+-----------------------------
+1. Student
+2. Web App (React)
+3. API Server (Node.js)
+4. Database (PostgreSQL)
+5. Cloud Storage (R2/S3)
+
+MESSAGE FLOW:
+-------------
+
+[Student Submission Phase]
+1. Student -> Web App: Record/Upload Audio
+2. Web App -> API Server: POST /api/submissions {task_id, audio_file}
+3. API Server -> Cloud Storage: Upload audio to cloud storage (MP3 conversion)
+4. Cloud Storage -> API Server: Return audio_url
+5. API Server -> Database: INSERT MemorizationSubmission (task_id, audio_url, status=pending)
+6. Database -> API Server: Confirm submission stored
+7. API Server -> Web App: Return 201 Created {submission_id, status}
+8. Web App -> Student: Display "Pending Review"
+
+[Teacher Assessment Phase] (async, in reference frame)
+9. API Server -> Database: Teacher queries pending submissions
+10. Database -> API Server: Return pending submissions list with audio URLs
+11. API Server -> Web App: GET /api/submissions/:id (audio stream)
+12. Web App -> Student: Play audio with timestamped comments
+13. Student -> Web App: Submit assessment scores (mem, tajweed, fluency)
+14. Web App -> API Server: POST /api/assessments {scores, feedback, timestamps}
+15. API Server -> Database: INSERT Assessment + UPDATE Submission status
+16. Database -> API Server: Confirm assessment saved
+
+================================================================================
+4. ACTIVITY DIAGRAM - STUDENT EXAM TAKING PROCESS (Page 6)
+================================================================================
+
+SWIMLANES (4 partitions):
+-------------------------
+- Student (leftmost, light green)
+- Web Client (second, cream)
+- API Server (third, light blue)
+- Database (rightmost, light pink)
+
+FLOW:
+-----
+[Start] -> Student: Login & Authenticate
+  -> Web Client: Validate JWT Token
+    -> API Server: Verify RBAC Permissions
+      -> Database: Verify Token & Role
+
+-> Student: Navigate to Exam Dashboard
+  -> Web Client: Fetch Exam List
+    -> API Server: Query Active Exams
+      -> Database: SELECT Exams & Questions
+
+-> [Decision: Exam Available?]
+  [No] -> Loop back to Navigate to Exam Dashboard
+  [Yes] -> Student: Select Available Exam
+    -> Web Client: Load Exam Metadata
+      -> API Server: Validate Time Window
+        -> Database: Check Enrollment & Attempts
+
+-> Student: Read Instructions & Start Exam
+  -> Web Client: Render Timer & Question UI
+    -> API Server: Serve Questions (Randomized)
+      -> Database: Log Start Timestamp
+
+-> [Decision: Time Remaining?]
+  [No] -> Auto-Submit on Timeout
+  [Yes] -> Student: Answer Questions (Navigate)
+    -> Web Client: Cache Answers (LocalStorage)
+      -> API Server: Auto-Submit on Timeout
+        -> Database: Store Answers Temporarily
+
+-> Student: Review Answers & Submit
+  -> Web Client: POST Final Submission
+    -> API Server: Auto-Grade MCQ/TF
+      -> Database: INSERT Submission & Answers
+
+-> [Decision: Short Answer?]
+  [Yes] -> Flag for Manual Grading (Teacher reviews later)
+  [No] -> API Server: Calculate Statistics
+    -> Database: UPDATE Results & Analytics
+
+-> Student: View Results & Feedback
+  -> Web Client: Display Score & Analytics
+    -> [End]
+
+================================================================================
+5. COMPONENT DIAGRAM - SYSTEM ARCHITECTURE (Page 7)
+================================================================================
+
+SYSTEM BOUNDARY: "Quran Learning Platform"
+
+LAYER 1: PRESENTATION LAYER (Client)
+------------------------------------
+Components:
+  - React 18 Web App
+  - React Native Mobile App
+  - Tailwind CSS + shadcn/ui (with WebSocket)
+
+LAYER 2: API LAYER (Gateway)
+----------------------------
+Components:
+  - Express.js REST API
+  - JWT Auth Middleware
+  - Rate Limiter + Validation
+
+Connection: Presentation -> API Layer via HTTPS/TLS 1.3
+Connection: Presentation <-> API Layer via WebSocket (bidirectional)
+
+LAYER 3: BUSINESS LOGIC LAYER (Services)
+----------------------------------------
+Components (top row):
+  - Auth Service
+  - Student Service
+  - Task Service
+  - Exam Service
+  - Audio Service
+  - Live Service
+  - Notif Service
+
+Components (bottom row):
+  - Content Service
+  - Report Service
+  - Message Service
+  - Tajweed Service
+  - Islamic Content
+  - Analytics Service
+  - Admin Service
+
+Connection: API Layer -> Services via Internal API
+
+LAYER 4: DATA ACCESS LAYER
+--------------------------
+Components:
+  - Drizzle ORM (PostgreSQL)
+  - Redis Cache (Session/Rate)
+  - Cloud Storage (R2/S3 CDN)
+  - Search Index (Full-text)
+  - File Queue (Transcoding)
+
+Connection: Services -> Data Access Layer
+Connection: Data Access -> PostgreSQL 15+ (Primary Database, UTF-8, ACID)
+
+EXTERNAL SERVICES (outside system boundary):
+--------------------------------------------
+  - Firebase Cloud Messaging (Push Notifications)
+  - Daily.co / Twilio (WebRTC Live Video)
+  - SMTP Server (Email Delivery)
+  - Quranic Text API
+  - Cloudflare CDN
+  - Monitoring (Sentry)
+
+Connections (dashed arrows):
+  - Notif Service -> Firebase FCM
+  - Live Service -> Daily.co / Twilio
+  - Notif Service -> SMTP Server
+  - Content Service -> Quranic Text API
+  - Cloud Storage -> Cloudflare CDN
+  - Services -> Monitoring (Sentry)
+
+================================================================================
+6. STATE DIAGRAM - MEMORIZATION SUBMISSION LIFECYCLE (Page 8)
+================================================================================
+
+STATES:
+-------
+[Initial State] -> ASSIGNED
+  (Task created by teacher)
+
+ASSIGNED -> IN_PROGRESS
+  Event: student starts recording
+
+IN_PROGRESS (self-loop)
+  Event: recording... (ongoing)
+
+IN_PROGRESS -> SUBMITTED
+  Event: upload complete [guard: audio < 20MB]
+  [Guard condition: file_size <= 20MB]
+
+IN_PROGRESS -> ASSIGNED
+  Event: cancel / timeout
+
+SUBMITTED -> PENDING_REVIEW
+  Event: queued for teacher review
+
+PENDING_REVIEW -> UNDER_REVIEW
+  Event: teacher opens audio player
+
+UNDER_REVIEW (self-loop)
+  Event: listening / scoring (ongoing)
+
+UNDER_REVIEW -> EVALUATED
+  Event: assessment submitted [scores >= threshold]
+  [Guard: overall_score >= 60%]
+
+UNDER_REVIEW -> REQUIRES_REVISION
+  Event: assessment submitted [scores < threshold]
+  [Guard: overall_score < 60%]
+
+REQUIRES_REVISION -> IN_PROGRESS
+  Event: student resubmits revised audio
+
+EVALUATED -> ARCHIVED
+  Event: 30 days after assessment
+
+ARCHIVED -> [Final State]
+  (Retained for 1 year)
+
+================================================================================
+7. DEPLOYMENT DIAGRAM - PRODUCTION INFRASTRUCTURE (Page 9)
+================================================================================
+
+CLIENT DEVICES (left side):
+---------------------------
+- Student Device: Browser (Chrome/Firefox/Safari)
+- Teacher Device: Browser + Camera + Microphone
+- Admin Workstation: Desktop Browser (Management Console)
+
+CLOUD ENVIRONMENT (center, "Render / Railway"):
+-----------------------------------------------
+
+CDN Layer:
+  - Cloudflare CDN (Edge Caching, DDoS Protection)
+  Connection: Client Devices -> CDN via HTTPS/TLS 1.3
+
+API Server Cluster:
+  - API Server 1: Node.js 20 LTS, Express.js
+  - API Server 2: Node.js 20 LTS, Express.js
+  - API Server N: Auto-scaling, Horizontal
+  Connection: CDN -> API Servers (load balanced)
+
+Database Cluster:
+  - PostgreSQL Primary: Master Node, Write Operations
+  - PostgreSQL Replica: Read Replica, Failover
+  Connection: API Servers -> PostgreSQL Primary via TCP/SQL
+  Connection: Primary <-> Replica (Replication Link)
+
+Cache Layer:
+  - Redis Cache: Session Store, Rate Limiting
+  Connection: API Servers -> Redis Cache via TCP
+
+EXTERNAL SERVICES (right side):
+-------------------------------
+- Firebase FCM: Push Notifications
+- Cloudflare R2: Object Storage (Audio/Video)
+- Daily.co / Twilio: WebRTC Live Video
+- SMTP Provider: Email Delivery
+
+Connections (dashed arrows from API Servers):
+  - API Servers -> Firebase FCM
+  - API Servers -> Cloudflare R2
+  - API Servers -> Daily.co / Twilio
+  - API Servers -> SMTP Provider
+
+================================================================================
+8. ENTITY-RELATIONSHIP DIAGRAM - DATABASE SCHEMA (Page 10)
+================================================================================
+
+ENTITIES (Tables):
+------------------
+
+TABLE: users
+  PK id: UUID
+  email: VARCHAR(255) [UQ]
+  password_hash: VARCHAR(255)
+  full_name: VARCHAR(255)
+  role: ENUM(admin, teacher, student)
+  phone: VARCHAR(20)
+  avatar_url: VARCHAR(500)
+  is_active: BOOLEAN
+  created_at: TIMESTAMP
+  updated_at: TIMESTAMP
+
+TABLE: student_profiles
+  PK id: UUID
+  FK user_id: UUID
+  FK teacher_id: UUID
+  FK class_id: UUID
+  enrollment_date: DATE
+  current_juz: INTEGER
+  current_surah: INTEGER
+  notes: TEXT
+
+TABLE: classes
+  PK id: UUID
+  FK teacher_id: UUID
+  FK created_by: UUID
+  name: VARCHAR(255)
+  description: TEXT
+  created_at: TIMESTAMP
+
+TABLE: memorization_tasks
+  PK id: UUID
+  FK teacher_id: UUID
+  FK student_id: UUID
+  task_type: ENUM(new, revision)
+  surah_number: INTEGER
+  ayah_start: INTEGER
+  ayah_end: INTEGER
+  assigned_date: DATE
+  due_date: DATE
+  status: ENUM(assigned, completed, overdue)
+  notes: TEXT
+
+TABLE: memorization_submissions
+  PK id: UUID
+  FK task_id: UUID
+  FK student_id: UUID
+  audio_url: VARCHAR(500)
+  submitted_at: TIMESTAMP
+  status: ENUM(pending, reviewed, revision_needed)
+  teacher_notes: TEXT
+
+TABLE: assessments
+  PK id: UUID
+  FK submission_id: UUID [UQ]
+  memorization_score: INTEGER
+  tajweed_score: INTEGER
+  fluency_score: INTEGER
+  overall_score: INTEGER
+  feedback: TEXT
+  assessed_at: TIMESTAMP
+
+TABLE: exams
+  PK id: UUID
+  FK teacher_id: UUID
+  title: VARCHAR(255)
+  description: TEXT
+  exam_type: ENUM(weekly, monthly)
+  start_time: TIMESTAMP
+  end_time: TIMESTAMP
+  time_limit: INTEGER
+  passing_score: INTEGER
+  status: ENUM(draft, published, closed)
+
+TABLE: questions
+  PK id: UUID
+  FK exam_id: UUID
+  question_type: ENUM(mc, tf, short)
+  question_text: TEXT
+  options: JSONB
+  correct_answer: TEXT
+  points: INTEGER
+  order_index: INTEGER
+
+TABLE: live_sessions
+  PK id: UUID
+  FK teacher_id: UUID
+  title: VARCHAR(255)
+  description: TEXT
+  session_type: ENUM(memorization, tajweed, educational)
+  scheduled_at: TIMESTAMP
+  duration_minutes: INTEGER
+  max_participants: INTEGER
+  meeting_url: VARCHAR(500)
+  status: ENUM(scheduled, active, completed)
+
+TABLE: notifications
+  PK id: UUID
+  FK sender_id: UUID
+  FK recipient_id: UUID
+  type: ENUM(announcement, private, auto)
+  title: VARCHAR(255)
+  message: TEXT
+  is_read: BOOLEAN
+  created_at: TIMESTAMP
+
+TABLE: messages
+  PK id: UUID
+  FK sender_id: UUID
+  FK recipient_id: UUID
+  content: TEXT
+  created_at: TIMESTAMP
+  is_read: BOOLEAN
+
+TABLE: tajweed_lessons
+  PK id: UUID
+  FK created_by: UUID
+  title: VARCHAR(255)
+  description: TEXT
+  category: ENUM(makharij, sifaat, ...)
+  content: TEXT
+  video_url: VARCHAR(500)
+  pdf_url: VARCHAR(500)
+  order_index: INTEGER
+
+RELATIONSHIPS (Crow's Foot Notation):
+--------------------------------------
+- users 1 -- 1 student_profiles (has)
+- users 1 -- * classes (teaches)
+- users 1 -- * exams (creates)
+- users 1 -- * memorization_tasks (assigns)
+- users 1 -- * memorization_tasks (receives)
+- student_profiles * -- 1 classes (belongs to)
+- memorization_tasks 1 -- * memorization_submissions (has)
+- memorization_submissions 1 -- 1 assessments (evaluated by)
+- exams 1 -- * questions (contains)
+- users 1 -- * live_sessions (hosts)
+- users 1 -- * notifications (sends)
+- users 1 -- * notifications (receives)
+- users 1 -- * messages (exchanges)
+- users 1 -- * tajweed_lessons (creates)
+
+================================================================================
+9. COMMUNICATION DIAGRAM - LIVE CLASS SESSION (WEBRTC) (Page 11)
+================================================================================
+
+FRAME: "Live Session Lifecycle"
+
+OBJECTS (Participants):
+-------------------------
+- Teacher Client (top left)
+- Signaling Server (top center)
+- Daily.co / Twilio (top center-right)
+- Student Client A (top right)
+- Student Client B (bottom left)
+- Recording Service (bottom center)
+- Chat Server (bottom center-right)
+- Attendance Tracker (bottom right)
+
+NUMBERED MESSAGE SEQUENCE:
+--------------------------
+1. Teacher Client -> Signaling Server: createRoom() {session_id, max_participants}
+2. Signaling Server -> Daily.co/Twilio: createMeeting() {teacher_token, config}
+3. Daily.co/Twilio -> Signaling Server: meeting_url + room_token
+4. Signaling Server -> Teacher Client: join_url + host_controls
+5. Signaling Server -> Student Client A: notify() {join_url, 15min_before}
+6. Student Client A -> Daily.co/Twilio: join() {student_token, session_id}
+7. Daily.co/Twilio -> Student Client A: peer_connection established (WebRTC)
+8. Teacher Client -> Student Client A: audio/video stream (RTP)
+9. Student Client A -> Teacher Client: audio/video stream (RTP)
+10. Teacher Client -> Chat Server: sendMessage() {text, timestamp}
+11. Chat Server -> Student Client A: broadcast() {message, sender}
+12. Chat Server -> Student Client B: broadcast() {message, sender}
+13. Daily.co/Twilio -> Recording Service: startRecording() {session_id}
+14. Daily.co/Twilio -> Attendance Tracker: trackJoin() {user_id, timestamp}
+15. Student Client B -> Daily.co/Twilio: join() {student_token}
+16. Teacher Client -> Signaling Server: endSession() {session_id}
+17. Signaling Server -> Daily.co/Twilio: closeRoom() {session_id}
+18. Daily.co/Twilio -> Recording Service: stopRecording() + upload_url
+19. Daily.co/Twilio -> Attendance Tracker: trackLeave() {user_id, duration}
+
+================================================================================
+10. PACKAGE DIAGRAM - MODULE ORGANIZATION (Page 12)
+================================================================================
+
+TOP LAYER PACKAGES:
+-------------------
+
+Package: frontend (React + Tailwind)
+  Sub-packages:
+    - components
+    - hooks
+    - pages
+    - stores
+    - utils
+    - api
+    - i18n
+    - types
+  Dependencies: imports shared (shared types)
+  Connection to backend: HTTP/REST
+
+Package: backend (Node.js + Express)
+  Sub-packages:
+    - routes
+    - controllers
+    - services
+    - models
+    - middleware
+    - utils
+    - config
+    - tests
+  Dependencies: imports shared (shared types)
+  Connection to database: TCP/SQL
+
+Package: database (PostgreSQL + Drizzle)
+  Sub-packages:
+    - migrations
+    - schemas
+    - seeds
+    - triggers
+    - views
+
+MIDDLE LAYER PACKAGES:
+----------------------
+
+Package: shared (TypeScript)
+  Sub-packages:
+    - types
+    - constants
+    - validators
+    - enums
+    - helpers
+  Dependencies: imported by frontend, backend, mobile
+
+Package: infrastructure (DevOps)
+  Sub-packages:
+    - docker
+    - ci-cd
+    - terraform
+    - monitoring
+    - scripts
+  Dependencies: deploys backend, orchestrates database
+
+Package: mobile (React Native)
+  Sub-packages:
+    - screens
+    - navigation
+    - components
+    - api
+    - hooks
+  Dependencies: imports shared (shared types)
+  Connection to backend: HTTP/REST
+
+BOTTOM LAYER PACKAGES:
+----------------------
+
+Package: documentation
+  Sub-packages:
+    - srs
+    - api-docs
+    - diagrams
+    - user-guides
+
+Package: testing (Vitest + Playwright)
+  Sub-packages:
+    - unit
+    - integration
+    - e2e
+    - fixtures
+    - mocks
+  Dependencies: tests frontend, tests backend
+
+Package: external-apis
+  Sub-packages:
+    - fcm
+    - daily-co
+    - smtp
+    - quran-api
+    - oauth
+  Dependencies: imported by backend
+
+================================================================================
+END OF DOCUMENT
+================================================================================

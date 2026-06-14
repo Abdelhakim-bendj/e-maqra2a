@@ -1,0 +1,9 @@
+{
+  "name": "e-maqra2a",
+  "version": "1.0.0",
+  "scripts": {
+    "dev:backend": "cd Backend && npm run dev",
+    "dev:frontend": "cd Frontend && npm run dev",
+    "dev": "npm run dev:backend & npm run dev:frontend"
+  }
+}
