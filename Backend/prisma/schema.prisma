@@ -175,6 +175,8 @@ model StudentProfile {
   currentSurah   Int?      @map("current_surah")
   notes          String?
 
+  @@index([teacherId])
+  @@index([classId])
   @@map("student_profiles")
 }
 
@@ -190,6 +192,7 @@ model Class {
 
   students    StudentProfile[]
 
+  @@index([teacherId])
   @@map("classes")
 }
 
@@ -210,6 +213,10 @@ model MemorizationTask {
 
   submissions  MemorizationSubmission[]
 
+  @@index([teacherId])
+  @@index([studentId])
+  @@index([status])
+  @@index([dueDate])
   @@map("memorization_tasks")
 }
 
@@ -226,6 +233,9 @@ model MemorizationSubmission {
 
   assessment   Assessment?
 
+  @@index([taskId])
+  @@index([studentId])
+  @@index([status])
   @@map("memorization_submissions")
 }
 
@@ -240,6 +250,7 @@ model Assessment {
   feedback          String?
   assessedAt        DateTime               @default(now()) @map("assessed_at")
 
+  @@index([submissionId])
   @@map("assessments")
 }
 
@@ -259,6 +270,8 @@ model Exam {
   questions        Question[]
   submissions      ExamSubmission[]
 
+  @@index([teacherId])
+  @@index([status])
   @@map("exams")
 }
 
@@ -275,6 +288,7 @@ model Question {
 
   answers       Answer[]
 
+  @@index([examId])
   @@map("questions")
 }
 
@@ -291,6 +305,8 @@ model ExamSubmission {
 
   answers     Answer[]
 
+  @@index([examId])
+  @@index([studentId])
   @@map("exam_submissions")
 }
 
@@ -304,6 +320,8 @@ model Answer {
   isCorrect     Boolean?       @map("is_correct")
   pointsAwarded Int?           @map("points_awarded")
 
+  @@index([submissionId])
+  @@index([questionId])
   @@map("answers")
 }
 
@@ -322,6 +340,9 @@ model LiveSession {
 
   attendances     Attendance[]
 
+  @@index([teacherId])
+  @@index([scheduledAt])
+  @@index([status])
   @@map("live_sessions")
 }
 
@@ -334,6 +355,8 @@ model Attendance {
   joinedAt  DateTime    @default(now()) @map("joined_at")
   leftAt    DateTime?   @map("left_at")
 
+  @@index([sessionId])
+  @@index([userId])
   @@map("attendances")
 }
 
@@ -349,6 +372,8 @@ model Notification {
   isRead      Boolean          @default(false) @map("is_read")
   createdAt   DateTime         @default(now()) @map("created_at")
 
+  @@index([recipientId])
+  @@index([isRead])
   @@map("notifications")
 }
 
@@ -362,6 +387,9 @@ model Message {
   isRead      Boolean  @default(false) @map("is_read")
   createdAt   DateTime @default(now()) @map("created_at")
 
+  @@index([senderId])
+  @@index([recipientId])
+  @@index([isRead])
   @@map("messages")
 }
 

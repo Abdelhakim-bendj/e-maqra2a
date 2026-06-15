@@ -9,7 +9,7 @@ const createSessionSchema = z.object({
   title: z.string().trim().min(3).max(200),
   description: z.string().max(500).optional(),
   sessionType: z.enum(['MEMORIZATION', 'TAJWEED', 'EDUCATIONAL']),
-  scheduledAt: z.string().datetime(),
+  scheduledAt: z.coerce.date(),
   durationMinutes: z.number().int().min(15).max(180),
   maxParticipants: z.number().int().min(2).max(100),
   meetingUrl: z.string().url().optional(),
@@ -84,6 +84,35 @@ export const createSession = async (req: AuthRequest, res: Response): Promise<vo
 
     await writeAuditLog(req, 'session.create', { entity: 'LiveSession', entityId: session.id });
     sendSuccess(res, { session }, 'Session scheduled', 201);
+  } catch (err) {
+    if (err instanceof z.ZodError) { sendError(res, 400, 'Validation failed', zodToFieldErrors(err)); return; }
+    sendError(res, 500, 'Internal server error');
+  }
+};
+
+// PUT /api/sessions/:id
+export const updateSession = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const data = createSessionSchema.partial().parse(req.body);
+    const session = await prisma.liveSession.findUnique({ where: { id: req.params.id } });
+    if (!session) { sendError(res, 404, 'Session not found'); return; }
+    if (session.teacherId !== req.user!.id && req.user!.role !== 'ADMIN') {
+      sendError(res, 403, 'Access denied'); return;
+    }
+    const updated = await prisma.liveSession.update({
+      where: { id: session.id },
+      data: {
+        title: data.title,
+        description: data.description,
+        sessionType: data.sessionType,
+        scheduledAt: data.scheduledAt ? new Date(data.scheduledAt) : undefined,
+        durationMinutes: data.durationMinutes,
+        maxParticipants: data.maxParticipants,
+        meetingUrl: data.meetingUrl,
+      },
+    });
+    await writeAuditLog(req, 'session.update', { entity: 'LiveSession', entityId: session.id });
+    sendSuccess(res, { session: updated }, 'Session updated');
   } catch (err) {
     if (err instanceof z.ZodError) { sendError(res, 400, 'Validation failed', zodToFieldErrors(err)); return; }
     sendError(res, 500, 'Internal server error');

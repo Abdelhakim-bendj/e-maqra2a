@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiCall } from '../../services/api';
 import {
@@ -51,17 +51,20 @@ export const quranSurahs = [
 
 export const ManageTasks = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const editTask = location.state?.editTask;
   const qc = useQueryClient();
+
   const [assignMode, setAssignMode] = useState<'student' | 'class'>('student');
   const [form, setForm] = useState({
-    studentId: '',
+    studentId: editTask?.studentId || '',
     classId: '',
-    taskType: 'NEW' as 'NEW' | 'REVISION',
-    surahNumber: 1,
-    ayahStart: 1,
-    ayahEnd: 7,
-    dueDate: new Date(Date.now() + 86400000).toISOString().slice(0, 10),
-    notes: '',
+    taskType: editTask?.taskType || ('NEW' as 'NEW' | 'REVISION'),
+    surahNumber: editTask?.surahNumber || 1,
+    ayahStart: editTask?.ayahStart || 1,
+    ayahEnd: editTask?.ayahEnd || 7,
+    dueDate: editTask?.dueDate ? new Date(editTask.dueDate).toISOString().slice(0, 10) : new Date(Date.now() + 86400000).toISOString().slice(0, 10),
+    notes: editTask?.notes || '',
   });
   const [error, setError] = useState('');
 
@@ -76,15 +79,25 @@ export const ManageTasks = () => {
   });
 
   const createMutation = useMutation({
-    mutationFn: (payload: object) =>
-      assignMode === 'student'
+    mutationFn: (payload: object) => {
+      if (editTask) {
+        return apiCall(`/tasks/${editTask.id}`, { method: 'PUT', body: JSON.stringify(payload) });
+      }
+      return assignMode === 'student'
         ? apiCall('/tasks', { method: 'POST', body: JSON.stringify(payload) })
-        : apiCall('/tasks/bulk', { method: 'POST', body: JSON.stringify(payload) }),
+        : apiCall('/tasks/bulk', { method: 'POST', body: JSON.stringify(payload) });
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['tasks'] });
-      navigate('/manage/tasks');
+      navigate('/tasks');
     },
-    onError: (err: any) => setError(err.message),
+    onError: (err: any) => {
+      if (err.errors && err.errors.length > 0) {
+        setError(err.errors.map((e: any) => e.message).join('، '));
+      } else {
+        setError(err.message);
+      }
+    },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -107,34 +120,37 @@ export const ManageTasks = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-black text-slate-950">تحديد الورد اليومي</h1>
-        <p className="mt-1 text-slate-500">قم بتعيين ورد الحفظ أو المراجعة للطلاب أو الفصول</p>
+        <h1 className="text-3xl font-black text-slate-950">{editTask ? 'تعديل المهمة' : 'تحديد الورد اليومي'}</h1>
+        <p className="mt-1 text-slate-500">{editTask ? 'تعديل تفاصيل ورد الطالب' : 'قم بتعيين ورد الحفظ أو المراجعة للطلاب أو الفصول'}</p>
       </div>
 
       <div className="mx-auto max-w-2xl rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
         {/* Assign mode tabs */}
-        <div className="mb-6 grid grid-cols-2 gap-2 rounded-2xl bg-slate-100 p-1">
-          {[
-            { value: 'student' as const, label: 'طالب محدد', icon: ChevronRight },
-            { value: 'class' as const, label: 'فصل كامل', icon: Users },
-          ].map((mode) => {
-            const Icon = mode.icon;
-            return (
-              <button
-                key={mode.value}
-                onClick={() => setAssignMode(mode.value)}
-                className={`flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-bold transition ${
-                  assignMode === mode.value
-                    ? 'bg-white text-emerald-800 shadow-sm'
-                    : 'text-slate-500'
-                }`}
-              >
-                <Icon className="h-4 w-4" />
-                {mode.label}
-              </button>
-            );
-          })}
-        </div>
+        {!editTask && (
+          <div className="mb-6 grid grid-cols-2 gap-2 rounded-2xl bg-slate-100 p-1">
+            {[
+              { value: 'student' as const, label: 'طالب محدد', icon: Users },
+              { value: 'class' as const, label: 'فصل كامل', icon: Users },
+            ].map((mode) => {
+              const Icon = mode.icon;
+              return (
+                <button
+                  key={mode.value}
+                  type="button"
+                  onClick={() => setAssignMode(mode.value)}
+                  className={`flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-bold transition ${
+                    assignMode === mode.value
+                      ? 'bg-white text-emerald-800 shadow-sm'
+                      : 'text-slate-500'
+                  }`}
+                >
+                  <Icon className="h-4 w-4" />
+                  {mode.label}
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         {error && (
           <div className="mb-4 rounded-xl bg-red-50 p-3 text-sm font-bold text-red-700 border border-red-100">
@@ -144,7 +160,7 @@ export const ManageTasks = () => {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Target */}
-          {assignMode === 'class' ? (
+          {!editTask && (assignMode === 'class' ? (
             <div>
               <label className="mb-2 block text-sm font-bold text-slate-700">الفصل الدراسي</label>
               <select
@@ -178,7 +194,7 @@ export const ManageTasks = () => {
                 ))}
               </select>
             </div>
-          )}
+          ))}
 
           {/* Task type */}
           <div>

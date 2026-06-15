@@ -7,7 +7,7 @@ import { asyncHandler } from '../middleware/async-handler';
 const router = Router();
 
 router.use(authenticate);
-router.get('/', authorize(Role.ADMIN), asyncHandler(listUsers));
+router.get('/', authorize(Role.ADMIN, Role.TEACHER, Role.STUDENT), asyncHandler(listUsers));
 router.post('/', authorize(Role.ADMIN), asyncHandler(createUser));
 router.patch('/:id', authorize(Role.ADMIN), asyncHandler(updateUser));
 

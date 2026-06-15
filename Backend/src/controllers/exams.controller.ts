@@ -9,8 +9,8 @@ const createExamSchema = z.object({
   title: z.string().trim().min(3, 'عنوان الاختبار مطلوب').max(200),
   description: z.string().max(1000).optional(),
   examType: z.enum(['WEEKLY', 'MONTHLY']),
-  startTime: z.string().datetime(),
-  endTime: z.string().datetime(),
+  startTime: z.coerce.date(),
+  endTime: z.coerce.date(),
   timeLimitMinutes: z.number().int().min(5).max(300),
   passingScore: z.number().int().min(0).max(100),
   questions: z.array(z.object({
@@ -46,9 +46,16 @@ export const listExams = async (req: AuthRequest, res: Response): Promise<void> 
     where.teacherId = userId;
   } else if (role === 'STUDENT') {
     where.status = 'PUBLISHED';
-    const profile = await prisma.studentProfile.findUnique({ where: { userId } });
-    if (profile?.teacherId) {
-      where.teacherId = profile.teacherId;
+    const profile = await prisma.studentProfile.findUnique({ 
+      where: { userId },
+      include: { class: true }
+    });
+    const teacherIds = [];
+    if (profile?.teacherId) teacherIds.push(profile.teacherId);
+    if (profile?.class?.teacherId) teacherIds.push(profile.class.teacherId);
+    
+    if (teacherIds.length > 0) {
+      where.teacherId = { in: teacherIds };
     } else {
       where.teacherId = 'no-teacher';
     }
@@ -64,10 +71,21 @@ export const listExams = async (req: AuthRequest, res: Response): Promise<void> 
       timeLimitMinutes: true, passingScore: true, status: true,
       teacher: { select: { id: true, fullName: true } },
       _count: { select: { questions: true, submissions: true } },
+      submissions: role === 'STUDENT' ? {
+        where: { studentId: userId },
+        select: { id: true, totalScore: true, status: true }
+      } : false,
+      questions: { select: { points: true } },
     },
   });
 
-  sendSuccess(res, { exams }, 'Exams loaded');
+  const formattedExams = exams.map(exam => {
+    const maxScore = (exam.questions as { points: number }[] | undefined)?.reduce((acc, q) => acc + q.points, 0) || 0;
+    const { questions, ...rest } = exam;
+    return { ...rest, maxScore };
+  });
+
+  sendSuccess(res, { exams: formattedExams }, 'Exams loaded');
 };
 
 // GET /api/exams/:id
@@ -85,8 +103,15 @@ export const getExam = async (req: AuthRequest, res: Response): Promise<void> =>
   if (role === 'TEACHER' && exam.teacherId !== userId) { sendError(res, 403, 'Access denied'); return; }
   
   if (role === 'STUDENT') {
-    const profile = await prisma.studentProfile.findUnique({ where: { userId } });
-    if (exam.teacherId !== profile?.teacherId) {
+    const profile = await prisma.studentProfile.findUnique({ 
+      where: { userId },
+      include: { class: true }
+    });
+    const teacherIds = [];
+    if (profile?.teacherId) teacherIds.push(profile.teacherId);
+    if (profile?.class?.teacherId) teacherIds.push(profile.class.teacherId);
+    
+    if (!teacherIds.includes(exam.teacherId)) {
       sendError(res, 403, 'Access denied');
       return;
     }
@@ -126,6 +151,7 @@ export const createExam = async (req: AuthRequest, res: Response): Promise<void>
         endTime: new Date(data.endTime),
         timeLimitMinutes: data.timeLimitMinutes,
         passingScore: data.passingScore,
+        status: 'PUBLISHED',
         questions: {
           create: data.questions.map((q) => ({
             questionType: q.questionType,
@@ -145,6 +171,36 @@ export const createExam = async (req: AuthRequest, res: Response): Promise<void>
   } catch (err) {
     if (err instanceof z.ZodError) { sendError(res, 400, 'Validation failed', zodToFieldErrors(err)); return; }
     console.error('Create exam error:', err);
+    sendError(res, 500, 'Internal server error');
+  }
+};
+
+// PUT /api/exams/:id
+export const updateExam = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const data = createExamSchema.partial().parse(req.body);
+    const exam = await prisma.exam.findUnique({ where: { id: req.params.id } });
+    if (!exam) { sendError(res, 404, 'Exam not found'); return; }
+    if (exam.teacherId !== req.user!.id && req.user!.role !== 'ADMIN') {
+      sendError(res, 403, 'Access denied'); return;
+    }
+    const updated = await prisma.exam.update({
+      where: { id: exam.id },
+      data: {
+        title: data.title,
+        description: data.description,
+        examType: data.examType,
+        startTime: data.startTime ? new Date(data.startTime) : undefined,
+        endTime: data.endTime ? new Date(data.endTime) : undefined,
+        timeLimitMinutes: data.timeLimitMinutes,
+        passingScore: data.passingScore,
+        status: 'PUBLISHED',
+      },
+    });
+    await writeAuditLog(req, 'exam.update', { entity: 'Exam', entityId: exam.id });
+    sendSuccess(res, { exam: updated }, 'Exam updated');
+  } catch (err) {
+    if (err instanceof z.ZodError) { sendError(res, 400, 'Validation failed', zodToFieldErrors(err)); return; }
     sendError(res, 500, 'Internal server error');
   }
 };

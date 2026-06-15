@@ -3,28 +3,29 @@ import type { ReactElement } from 'react';
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MainLayout } from './components/layout/MainLayout';
-import { Login } from './pages/auth/Login';
-import { Register } from './pages/auth/Register';
-import { ForgotPassword } from './pages/auth/ForgotPassword';
-import { ResetPassword } from './pages/auth/ResetPassword';
-import { Dashboard } from './pages/dashboard/Dashboard';
-import { apiCall } from './services/api';
-import { useAuthStore } from './store/authStore';
-import type { User } from './store/authStore';
-import { Tasks } from './pages/tasks/Tasks';
-import { ManageTasks } from './pages/tasks/ManageTasks';
-import { SubmitTask } from './pages/tasks/SubmitTask';
-import { Exams } from './pages/exams/Exams';
-import { ManageExams } from './pages/exams/ManageExams';
-import { Submissions } from './pages/submissions/Submissions';
-import { IslamicContent } from './pages/content/IslamicContent';
-import { Tajweed } from './pages/content/Tajweed';
-import { Messages } from './pages/messages/Messages';
-import { Notifications } from './pages/notifications/Notifications';
-import { Sessions } from './pages/sessions/Sessions';
-import { Classes } from './pages/classes/Classes';
-import { Students } from './pages/students/Students';
-import { Reports } from './pages/reports/Reports';
+import { Suspense, lazy } from 'react';
+
+const Login = lazy(() => import('./pages/auth/Login').then(module => ({ default: module.Login })));
+const Register = lazy(() => import('./pages/auth/Register').then(module => ({ default: module.Register })));
+const ForgotPassword = lazy(() => import('./pages/auth/ForgotPassword').then(module => ({ default: module.ForgotPassword })));
+const ResetPassword = lazy(() => import('./pages/auth/ResetPassword').then(module => ({ default: module.ResetPassword })));
+const Dashboard = lazy(() => import('./pages/dashboard/Dashboard').then(module => ({ default: module.Dashboard })));
+const Tasks = lazy(() => import('./pages/tasks/Tasks').then(module => ({ default: module.Tasks })));
+const ManageTasks = lazy(() => import('./pages/tasks/ManageTasks').then(module => ({ default: module.ManageTasks })));
+const SubmitTask = lazy(() => import('./pages/tasks/SubmitTask').then(module => ({ default: module.SubmitTask })));
+const Exams = lazy(() => import('./pages/exams/Exams').then(module => ({ default: module.Exams })));
+const ManageExams = lazy(() => import('./pages/exams/ManageExams').then(module => ({ default: module.ManageExams })));
+const TakeExam = lazy(() => import('./pages/exams/TakeExam').then(module => ({ default: module.TakeExam })));
+const ExamResults = lazy(() => import('./pages/exams/ExamResults').then(module => ({ default: module.ExamResults })));
+const Submissions = lazy(() => import('./pages/submissions/Submissions').then(module => ({ default: module.Submissions })));
+const IslamicContent = lazy(() => import('./pages/content/IslamicContent').then(module => ({ default: module.IslamicContent })));
+const Tajweed = lazy(() => import('./pages/content/Tajweed').then(module => ({ default: module.Tajweed })));
+const Messages = lazy(() => import('./pages/messages/Messages').then(module => ({ default: module.Messages })));
+const Notifications = lazy(() => import('./pages/notifications/Notifications').then(module => ({ default: module.Notifications })));
+const Sessions = lazy(() => import('./pages/sessions/Sessions').then(module => ({ default: module.Sessions })));
+const Classes = lazy(() => import('./pages/classes/Classes').then(module => ({ default: module.Classes })));
+const Students = lazy(() => import('./pages/students/Students').then(module => ({ default: module.Students })));
+const Reports = lazy(() => import('./pages/reports/Reports').then(module => ({ default: module.Reports })));
 
 
 const queryClient = new QueryClient({
@@ -97,24 +98,28 @@ function App() {
               path="dashboard"
               element={
                 <ProtectedRoute>
-                  <Dashboard />
+                  <Suspense fallback={<div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-600" /></div>}>
+                    <Dashboard />
+                  </Suspense>
                 </ProtectedRoute>
               }
             />
-            <Route path="tasks" element={<ProtectedRoute><Tasks /></ProtectedRoute>} />
-            <Route path="manage/tasks" element={<ProtectedRoute><ManageTasks /></ProtectedRoute>} />
-            <Route path="tasks/:taskId/submit" element={<ProtectedRoute><SubmitTask /></ProtectedRoute>} />
-            <Route path="exams" element={<ProtectedRoute><Exams /></ProtectedRoute>} />
-            <Route path="manage/exams" element={<ProtectedRoute><ManageExams /></ProtectedRoute>} />
-            <Route path="submissions" element={<ProtectedRoute><Submissions /></ProtectedRoute>} />
-            <Route path="tajweed" element={<ProtectedRoute><Tajweed /></ProtectedRoute>} />
-            <Route path="content" element={<ProtectedRoute><IslamicContent /></ProtectedRoute>} />
-            <Route path="messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
-            <Route path="notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
-            <Route path="sessions" element={<ProtectedRoute><Sessions /></ProtectedRoute>} />
-            <Route path="admin/classes" element={<ProtectedRoute><Classes /></ProtectedRoute>} />
-            <Route path="students" element={<ProtectedRoute><Students /></ProtectedRoute>} />
-            <Route path="reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
+            <Route path="tasks" element={<ProtectedRoute><Suspense fallback={<div className="p-8 text-center">جاري التحميل...</div>}><Tasks /></Suspense></ProtectedRoute>} />
+            <Route path="manage/tasks" element={<ProtectedRoute><Suspense fallback={<div className="p-8 text-center">جاري التحميل...</div>}><ManageTasks /></Suspense></ProtectedRoute>} />
+            <Route path="tasks/:taskId/submit" element={<ProtectedRoute><Suspense fallback={<div className="p-8 text-center">جاري التحميل...</div>}><SubmitTask /></Suspense></ProtectedRoute>} />
+            <Route path="exams" element={<ProtectedRoute><Suspense fallback={<div className="p-8 text-center">جاري التحميل...</div>}><Exams /></Suspense></ProtectedRoute>} />
+            <Route path="exams/:id/take" element={<ProtectedRoute><Suspense fallback={<div className="p-8 text-center">جاري التحميل...</div>}><TakeExam /></Suspense></ProtectedRoute>} />
+            <Route path="exams/:id/results" element={<ProtectedRoute><Suspense fallback={<div className="p-8 text-center">جاري التحميل...</div>}><ExamResults /></Suspense></ProtectedRoute>} />
+            <Route path="manage/exams" element={<ProtectedRoute><Suspense fallback={<div className="p-8 text-center">جاري التحميل...</div>}><ManageExams /></Suspense></ProtectedRoute>} />
+            <Route path="submissions" element={<ProtectedRoute><Suspense fallback={<div className="p-8 text-center">جاري التحميل...</div>}><Submissions /></Suspense></ProtectedRoute>} />
+            <Route path="tajweed" element={<ProtectedRoute><Suspense fallback={<div className="p-8 text-center">جاري التحميل...</div>}><Tajweed /></Suspense></ProtectedRoute>} />
+            <Route path="content" element={<ProtectedRoute><Suspense fallback={<div className="p-8 text-center">جاري التحميل...</div>}><IslamicContent /></Suspense></ProtectedRoute>} />
+            <Route path="messages" element={<ProtectedRoute><Suspense fallback={<div className="p-8 text-center">جاري التحميل...</div>}><Messages /></Suspense></ProtectedRoute>} />
+            <Route path="notifications" element={<ProtectedRoute><Suspense fallback={<div className="p-8 text-center">جاري التحميل...</div>}><Notifications /></Suspense></ProtectedRoute>} />
+            <Route path="sessions" element={<ProtectedRoute><Suspense fallback={<div className="p-8 text-center">جاري التحميل...</div>}><Sessions /></Suspense></ProtectedRoute>} />
+            <Route path="admin/classes" element={<ProtectedRoute><Suspense fallback={<div className="p-8 text-center">جاري التحميل...</div>}><Classes /></Suspense></ProtectedRoute>} />
+            <Route path="students" element={<ProtectedRoute><Suspense fallback={<div className="p-8 text-center">جاري التحميل...</div>}><Students /></Suspense></ProtectedRoute>} />
+            <Route path="reports" element={<ProtectedRoute><Suspense fallback={<div className="p-8 text-center">جاري التحميل...</div>}><Reports /></Suspense></ProtectedRoute>} />
 
             <Route
               path="*"

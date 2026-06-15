@@ -6,6 +6,7 @@ import { useAuthStore } from '../../store/authStore';
 import {
   BookOpen, CheckCircle2, Clock, AlertTriangle, ChevronLeft, Plus, Mic,
 } from 'lucide-react';
+import { quranSurahs } from './ManageTasks';
 
 type Task = {
   id: string;
@@ -41,6 +42,11 @@ export const Tasks = () => {
   const completeMutation = useMutation({
     mutationFn: (taskId: string) =>
       apiCall(`/tasks/${taskId}/status`, { method: 'PATCH', body: JSON.stringify({ status: 'COMPLETED' }) }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['tasks'] }),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (taskId: string) => apiCall(`/tasks/${taskId}`, { method: 'DELETE' }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['tasks'] }),
   });
 
@@ -128,7 +134,7 @@ export const Tasks = () => {
                 <div className="mb-4">
                   <p className="text-xs font-bold text-slate-400 mb-1">السورة والآيات</p>
                   <h3 className="text-xl font-black text-slate-950">
-                    سورة {task.surahNumber}
+                    سورة {quranSurahs[task.surahNumber - 1]?.name || task.surahNumber}
                   </h3>
                   <p className="text-slate-600 font-bold">
                     الآيات {task.ayahStart} – {task.ayahEnd}
@@ -172,7 +178,30 @@ export const Tasks = () => {
                     </>
                   )}
                   {user?.role !== 'STUDENT' && (
-                    <span className="text-sm text-slate-500 font-bold">{task.student.fullName}</span>
+                    <div className="flex w-full items-center justify-between">
+                      <span className="text-sm text-slate-500 font-bold">{task.student.fullName}</span>
+                      <div className="flex gap-2">
+                        <Link
+                          to="/manage/tasks"
+                          state={{ editTask: task }}
+                          className="text-emerald-500 hover:text-emerald-700 bg-emerald-50 p-1.5 rounded-lg transition"
+                          title="تعديل"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+                        </Link>
+                        <button
+                          onClick={() => {
+                            if (confirm('هل أنت متأكد من حذف هذه المهمة؟')) {
+                              deleteMutation.mutate(task.id);
+                            }
+                          }}
+                          className="text-red-400 hover:text-red-600 bg-red-50 p-1.5 rounded-lg transition"
+                          title="حذف"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                        </button>
+                      </div>
+                    </div>
                   )}
                 </div>
               </div>

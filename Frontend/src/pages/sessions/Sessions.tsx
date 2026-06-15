@@ -32,7 +32,8 @@ const ClockTimePickerWrapper = () => {
 export const Sessions = () => {
   const { user } = useAuthStore();
   const queryClient = useQueryClient();
-  const [showForm, setShowForm] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [editingSession, setEditingSession] = useState<Session | null>(null);
   
   const { data: sessions, isLoading } = useQuery({
     queryKey: ['sessions'],
@@ -43,7 +44,15 @@ export const Sessions = () => {
     mutationFn: (data: any) => apiCall('/sessions', { method: 'POST', body: JSON.stringify(data) }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['sessions'] });
-      setShowForm(false);
+      setIsCreating(false);
+    },
+  });
+
+  const updateSession = useMutation({
+    mutationFn: ({ id, data }: { id: string, data: any }) => apiCall(`/sessions/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['sessions'] });
+      setEditingSession(null);
     },
   });
 
@@ -66,7 +75,7 @@ export const Sessions = () => {
         </h1>
         {user?.role !== 'STUDENT' && (
           <button
-            onClick={() => setShowForm(!showForm)}
+            onClick={() => { setIsCreating(true); setEditingSession(null); }}
             className="flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-700 transition"
           >
             <Plus className="h-4 w-4" />
@@ -75,14 +84,14 @@ export const Sessions = () => {
         )}
       </div>
 
-      {showForm && user?.role !== 'STUDENT' && (
+      {(isCreating || editingSession) && user?.role !== 'STUDENT' && (
         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-          <h2 className="text-lg font-bold mb-4">جدولة جلسة جديدة</h2>
+          <h2 className="text-lg font-bold mb-4">{editingSession ? 'تعديل الجلسة' : 'جدولة جلسة جديدة'}</h2>
           <form
             onSubmit={(e) => {
               e.preventDefault();
               const formData = new FormData(e.currentTarget);
-              createSession.mutate({
+              const data = {
                 title: formData.get('title'),
                 description: formData.get('description'),
                 sessionType: formData.get('sessionType'),
@@ -90,17 +99,22 @@ export const Sessions = () => {
                 durationMinutes: parseInt(formData.get('durationMinutes') as string),
                 maxParticipants: parseInt(formData.get('maxParticipants') as string),
                 meetingUrl: formData.get('meetingUrl') || undefined,
-              });
+              };
+              if (editingSession) {
+                updateSession.mutate({ id: editingSession.id, data });
+              } else {
+                createSession.mutate(data);
+              }
             }}
             className="grid grid-cols-1 md:grid-cols-2 gap-4"
           >
             <div className="space-y-1">
               <label className="text-sm font-bold text-slate-700">عنوان الجلسة</label>
-              <input name="title" required className="w-full rounded-xl border border-slate-300 p-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" />
+              <input name="title" defaultValue={editingSession?.title || ''} required className="w-full rounded-xl border border-slate-300 p-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" />
             </div>
             <div className="space-y-1">
               <label className="text-sm font-bold text-slate-700">نوع الجلسة</label>
-              <select name="sessionType" required className="w-full rounded-xl border border-slate-300 p-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500">
+              <select name="sessionType" defaultValue={editingSession?.sessionType || 'MEMORIZATION'} required className="w-full rounded-xl border border-slate-300 p-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500">
                 <option value="MEMORIZATION">تسميع</option>
                 <option value="TAJWEED">تجويد</option>
                 <option value="EDUCATIONAL">درس تربوي</option>
@@ -109,31 +123,31 @@ export const Sessions = () => {
             <div className="space-y-1">
               <label className="text-sm font-bold text-slate-700">تاريخ ووقت البدء</label>
               <div className="flex gap-2 relative">
-                <input type="date" name="scheduledDate" required className="w-1/2 rounded-xl border border-slate-300 p-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" />
+                <input type="date" name="scheduledDate" defaultValue={editingSession ? new Date(editingSession.scheduledAt).toISOString().split('T')[0] : ''} required className="w-1/2 rounded-xl border border-slate-300 p-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" />
                 <div className="w-1/2">
-                  <ClockTimePickerWrapper />
+                  <input type="time" name="scheduledTime" defaultValue={editingSession ? new Date(editingSession.scheduledAt).toISOString().substring(11, 16) : '10:00'} required className="w-full rounded-xl border border-slate-300 p-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" />
                 </div>
               </div>
             </div>
             <div className="space-y-1">
               <label className="text-sm font-bold text-slate-700">المدة (بالدقائق)</label>
-              <input type="number" name="durationMinutes" min="15" max="180" defaultValue="45" required className="w-full rounded-xl border border-slate-300 p-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" />
+              <input type="number" name="durationMinutes" min="15" max="180" defaultValue={editingSession?.durationMinutes || 45} required className="w-full rounded-xl border border-slate-300 p-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" />
             </div>
             <div className="space-y-1">
               <label className="text-sm font-bold text-slate-700">الحد الأقصى للمشاركين</label>
-              <input type="number" name="maxParticipants" min="2" max="100" defaultValue="20" required className="w-full rounded-xl border border-slate-300 p-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" />
+              <input type="number" name="maxParticipants" min="2" max="100" defaultValue={editingSession?.maxParticipants || 20} required className="w-full rounded-xl border border-slate-300 p-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" />
             </div>
             <div className="space-y-1">
               <label className="text-sm font-bold text-slate-700">رابط الاجتماع (اختياري)</label>
-              <input type="url" name="meetingUrl" placeholder="https://meet.google.com/..." className="w-full rounded-xl border border-slate-300 p-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" />
+              <input type="url" name="meetingUrl" defaultValue={editingSession?.meetingUrl || ''} placeholder="https://meet.google.com/..." className="w-full rounded-xl border border-slate-300 p-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" />
             </div>
             <div className="space-y-1 md:col-span-2">
               <label className="text-sm font-bold text-slate-700">الوصف</label>
-              <textarea name="description" rows={2} className="w-full rounded-xl border border-slate-300 p-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" />
+              <textarea name="description" defaultValue={editingSession?.description || ''} rows={2} className="w-full rounded-xl border border-slate-300 p-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" />
             </div>
             <div className="md:col-span-2 flex justify-end gap-2 mt-2">
-              <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 text-sm font-bold text-slate-600 bg-slate-100 rounded-xl hover:bg-slate-200">إلغاء</button>
-              <button type="submit" disabled={createSession.isPending} className="px-4 py-2 text-sm font-bold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700">{createSession.isPending ? 'جاري الحفظ...' : 'حفظ الجلسة'}</button>
+              <button type="button" onClick={() => { setIsCreating(false); setEditingSession(null); }} className="px-4 py-2 text-sm font-bold text-slate-600 bg-slate-100 rounded-xl hover:bg-slate-200">إلغاء</button>
+              <button type="submit" disabled={createSession.isPending || updateSession.isPending} className="px-4 py-2 text-sm font-bold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700">{(createSession.isPending || updateSession.isPending) ? 'جاري الحفظ...' : 'حفظ الجلسة'}</button>
             </div>
           </form>
         </div>
@@ -159,9 +173,16 @@ export const Sessions = () => {
                 </span>
                 <h3 className="text-lg font-black text-slate-900 mt-2">{session.title}</h3>
               </div>
-              <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg">
-                {session.sessionType === 'MEMORIZATION' ? 'تسميع' : session.sessionType === 'TAJWEED' ? 'تجويد' : 'درس'}
-              </span>
+              <div className="flex items-center gap-2">
+                {user?.role !== 'STUDENT' && session.status === 'SCHEDULED' && (
+                  <button onClick={() => { setEditingSession(session); setIsCreating(false); window.scrollTo({top: 0, behavior: 'smooth'}); }} className="text-emerald-500 hover:text-emerald-700 bg-emerald-50 p-1.5 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+                  </button>
+                )}
+                <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg">
+                  {session.sessionType === 'MEMORIZATION' ? 'تسميع' : session.sessionType === 'TAJWEED' ? 'تجويد' : 'درس'}
+                </span>
+              </div>
             </div>
             
             <p className="text-sm text-slate-500 mb-4 line-clamp-2 min-h-[40px]">{session.description || 'لا يوجد وصف'}</p>

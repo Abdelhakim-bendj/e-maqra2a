@@ -45,9 +45,14 @@ export const listUsers = async (req: AuthRequest, res: Response): Promise<void> 
   let whereClause: any = {};
   
   if (req.user?.role === 'TEACHER') {
-    // Find all student profiles supervised by this teacher
+    // Find all student profiles supervised by this teacher directly or via class
     const profiles = await prisma.studentProfile.findMany({
-      where: { teacherId: req.user.id },
+      where: {
+        OR: [
+          { teacherId: req.user.id },
+          { class: { teacherId: req.user.id } }
+        ]
+      },
       select: { userId: true }
     });
     const studentUserIds = profiles.map(p => p.userId);

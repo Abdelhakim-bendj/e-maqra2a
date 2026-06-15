@@ -11,7 +11,7 @@ const createTaskSchema = z.object({
   surahNumber: z.number().int().min(1).max(114),
   ayahStart: z.number().int().min(1),
   ayahEnd: z.number().int().min(1),
-  dueDate: z.string().datetime({ message: 'تاريخ الاستحقاق غير صالح' }),
+  dueDate: z.coerce.date({ invalid_type_error: 'تاريخ الاستحقاق غير صالح' }),
   notes: z.string().max(500).optional(),
 }).refine((d) => d.ayahEnd >= d.ayahStart, {
   message: 'آية النهاية يجب أن تكون بعد أو مساوية لآية البداية',
@@ -24,7 +24,7 @@ const bulkCreateTaskSchema = z.object({
   surahNumber: z.number().int().min(1).max(114),
   ayahStart: z.number().int().min(1),
   ayahEnd: z.number().int().min(1),
-  dueDate: z.string().datetime(),
+  dueDate: z.coerce.date({ invalid_type_error: 'تاريخ الاستحقاق غير صالح' }),
   notes: z.string().max(500).optional(),
 }).refine((d) => d.ayahEnd >= d.ayahStart, {
   message: 'آية النهاية يجب أن تكون بعد أو مساوية لآية البداية',
@@ -164,6 +164,7 @@ export const createTask = async (req: AuthRequest, res: Response): Promise<void>
     sendSuccess(res, { task }, 'Task created successfully', 201);
   } catch (err) {
     if (err instanceof z.ZodError) {
+      console.error('Task validation failed:', zodToFieldErrors(err));
       sendError(res, 400, 'Validation failed', zodToFieldErrors(err)); return;
     }
     console.error('Create task error:', err);
@@ -218,9 +219,37 @@ export const createBulkTask = async (req: AuthRequest, res: Response): Promise<v
     sendSuccess(res, { count: tasks.length }, `${tasks.length} tasks created`, 201);
   } catch (err) {
     if (err instanceof z.ZodError) {
+      console.error('Bulk task validation failed:', zodToFieldErrors(err));
       sendError(res, 400, 'Validation failed', zodToFieldErrors(err)); return;
     }
     console.error('Bulk task error:', err);
+    sendError(res, 500, 'Internal server error');
+  }
+};
+
+// PUT /api/tasks/:id
+export const updateTask = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const data = createTaskSchema.partial().parse(req.body);
+    const task = await prisma.memorizationTask.findUnique({ where: { id: req.params.id } });
+    if (!task) { sendError(res, 404, 'Task not found'); return; }
+    if (task.teacherId !== req.user!.id && req.user!.role !== 'ADMIN') {
+      sendError(res, 403, 'Access denied'); return;
+    }
+    const updated = await prisma.memorizationTask.update({
+      where: { id: task.id },
+      data: {
+        taskType: data.taskType,
+        surahNumber: data.surahNumber,
+        ayahStart: data.ayahStart,
+        ayahEnd: data.ayahEnd,
+        dueDate: data.dueDate ? new Date(data.dueDate) : undefined,
+        notes: data.notes,
+      },
+    });
+    sendSuccess(res, { task: updated }, 'Task updated');
+  } catch (err) {
+    if (err instanceof z.ZodError) { sendError(res, 400, 'Validation failed', zodToFieldErrors(err)); return; }
     sendError(res, 500, 'Internal server error');
   }
 };

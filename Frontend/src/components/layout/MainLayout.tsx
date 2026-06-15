@@ -1,5 +1,5 @@
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Bell, BookOpen, ClipboardList, GraduationCap, LayoutDashboard,
   LogOut, MessageSquare, Mic, Moon, Settings, Users, Video,
@@ -36,6 +36,7 @@ export const MainLayout = () => {
   const { user, logout } = useAuthStore();
   const location = useLocation();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const { data: notifData } = useQuery({
     queryKey: ['notifications', 'unread'],
@@ -58,6 +59,7 @@ export const MainLayout = () => {
     try {
       await apiCall<null>('/auth/logout', { method: 'POST' }, false);
     } finally {
+      queryClient.clear();
       logout();
       navigate('/login', { replace: true });
     }
