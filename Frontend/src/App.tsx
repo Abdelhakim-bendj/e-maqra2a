@@ -4,6 +4,8 @@ import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-route
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MainLayout } from './components/layout/MainLayout';
 import { Suspense, lazy } from 'react';
+import { useAuthStore, type User } from './store/authStore';
+import { apiCall } from './services/api';
 
 const Login = lazy(() => import('./pages/auth/Login').then(module => ({ default: module.Login })));
 const Register = lazy(() => import('./pages/auth/Register').then(module => ({ default: module.Register })));

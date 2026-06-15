@@ -1,0 +1,23 @@
+src/components/ui/ClockTimePicker.tsx(80,17): error TS6133: 'isInner' is declared but its value is never read.
+src/lib/utils.ts(2,25): error TS2307: Cannot find module 'tailwind-merge' or its corresponding type declarations.
+src/pages/exams/ExamResults.tsx(29,9): error TS6133: 'user' is declared but its value is never read.
+src/pages/exams/ManageExams.tsx(27,24): error TS6133: 'setPassingScore' is declared but its value is never read.
+src/pages/exams/TakeExam.tsx(5,31): error TS6133: 'ChevronRight' is declared but its value is never read.
+src/pages/exams/TakeExam.tsx(35,17): error TS6133: 'data' is declared but its value is never read.
+src/pages/messages/Messages.tsx(5,31): error TS6133: 'UserRound' is declared but its value is never read.
+src/pages/notifications/Notifications.tsx(4,42): error TS6133: 'ShieldAlert' is declared but its value is never read.
+src/pages/sessions/Sessions.tsx(1,20): error TS6133: 'useEffect' is declared but its value is never read.
+src/pages/sessions/Sessions.tsx(22,7): error TS6133: 'ClockTimePickerWrapper' is declared but its value is never read.
+src/pages/submissions/Submissions.tsx(55,9): error TS6133: 'tasksData' is declared but its value is never read.
+src/pages/submissions/Submissions.tsx(287,34): error TS2339: Property 'notes' does not exist on type '{ surahNumber: number; ayahStart: number; ayahEnd: number; taskType: string; }'.
+src/pages/submissions/Submissions.tsx(317,42): error TS2339: Property 'notes' does not exist on type '{ surahNumber: number; ayahStart: number; ayahEnd: number; taskType: string; }'.
+src/pages/submissions/Submissions.tsx(323,29): error TS2339: Property 'teacherNotes' does not exist on type 'Submission'.
+src/pages/submissions/Submissions.tsx(323,64): error TS2339: Property 'notes' does not exist on type '{ surahNumber: number; ayahStart: number; ayahEnd: number; taskType: string; }'.
+src/pages/submissions/Submissions.tsx(323,90): error TS2339: Property 'notes' does not exist on type '{ surahNumber: number; ayahStart: number; ayahEnd: number; taskType: string; }'.
+src/pages/submissions/Submissions.tsx(326,32): error TS2339: Property 'teacherNotes' does not exist on type 'Submission'.
+src/pages/submissions/Submissions.tsx(326,65): error TS2339: Property 'notes' does not exist on type '{ surahNumber: number; ayahStart: number; ayahEnd: number; taskType: string; }'.
+src/pages/tasks/ManageTasks.tsx(6,3): error TS6133: 'BookOpen' is declared but its value is never read.
+src/pages/tasks/ManageTasks.tsx(6,23): error TS6133: 'ChevronRight' is declared but its value is never read.
+src/pages/tasks/ManageTasks.tsx(6,37): error TS6133: 'Plus' is declared but its value is never read.
+src/pages/tasks/ManageTasks.tsx(6,49): error TS6133: 'Trash2' is declared but its value is never read.
+src/pages/tasks/Tasks.tsx(7,68): error TS6133: 'Mic' is declared but its value is never read.
