@@ -48,7 +48,6 @@
     "vitest": "^1.3.0"
   },
   "prisma": {
-    "seed": "ts-node prisma/seed.ts",
-    "clearseed": "npx ts-node clear-db.ts"
+    "seed": "ts-node prisma/seed.ts"
   }
 }
