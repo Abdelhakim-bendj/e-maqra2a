@@ -118,16 +118,16 @@ export const ManageTasks = () => {
   const classes = classData?.classes ?? [];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 animate-fade-in">
       <div>
-        <h1 className="text-3xl font-black text-slate-950">{editTask ? 'تعديل المهمة' : 'تحديد الورد اليومي'}</h1>
-        <p className="mt-1 text-slate-500">{editTask ? 'تعديل تفاصيل ورد الطالب' : 'قم بتعيين ورد الحفظ أو المراجعة للطلاب أو الفصول'}</p>
+        <h1 className="text-3xl font-black text-foreground tracking-tight">{editTask ? 'تعديل المهمة' : 'تحديد الورد اليومي'}</h1>
+        <p className="mt-1.5 text-muted-foreground font-medium">{editTask ? 'تعديل تفاصيل ورد الطالب' : 'قم بتعيين ورد الحفظ أو المراجعة للطلاب أو الفصول وانطلق بهم نحو التفوق'}</p>
       </div>
 
-      <div className="mx-auto max-w-2xl rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+      <div className="mx-auto max-w-2xl rounded-[2rem] border-2 border-border bg-card p-8 shadow-xl shadow-foreground/5 sm:p-10 animate-slide-up">
         {/* Assign mode tabs */}
         {!editTask && (
-          <div className="mb-6 grid grid-cols-2 gap-2 rounded-2xl bg-slate-100 p-1">
+          <div className="mb-8 grid grid-cols-2 gap-3 rounded-[1.5rem] bg-muted/50 p-1.5">
             {[
               { value: 'student' as const, label: 'طالب محدد', icon: Users },
               { value: 'class' as const, label: 'فصل كامل', icon: Users },
@@ -138,13 +138,13 @@ export const ManageTasks = () => {
                   key={mode.value}
                   type="button"
                   onClick={() => setAssignMode(mode.value)}
-                  className={`flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-bold transition ${
+                  className={`flex items-center justify-center gap-2.5 rounded-2xl py-3.5 text-sm font-black transition-all duration-300 active:scale-95 ${
                     assignMode === mode.value
-                      ? 'bg-white text-emerald-800 shadow-sm'
-                      : 'text-slate-500'
+                      ? 'bg-card text-primary shadow-sm ring-1 ring-border'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                   }`}
                 >
-                  <Icon className="h-4 w-4" />
+                  <Icon className="h-5 w-5" />
                   {mode.label}
                 </button>
               );
@@ -153,21 +153,21 @@ export const ManageTasks = () => {
         )}
 
         {error && (
-          <div className="mb-4 rounded-xl bg-red-50 p-3 text-sm font-bold text-red-700 border border-red-100">
+          <div className="mb-6 rounded-2xl bg-destructive/10 p-4 text-sm font-black text-destructive border-2 border-destructive/20 animate-pulse">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-6">
           {/* Target */}
           {!editTask && (assignMode === 'class' ? (
             <div>
-              <label className="mb-2 block text-sm font-bold text-slate-700">الفصل الدراسي</label>
+              <label className="mb-2.5 block text-base font-black text-foreground">الفصل الدراسي</label>
               <select
                 value={form.classId}
                 onChange={(e) => setForm({ ...form, classId: e.target.value })}
                 required
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 px-4 font-medium outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                className="w-full rounded-2xl border-2 border-border bg-muted/30 py-4 px-5 text-base font-bold text-foreground outline-none transition-all focus:border-primary focus:bg-card focus:ring-4 focus:ring-primary/20 hover:border-primary/50"
               >
                 <option value="">اختر الفصل...</option>
                 {classes.map((cls) => (
@@ -179,12 +179,12 @@ export const ManageTasks = () => {
             </div>
           ) : (
             <div>
-              <label className="mb-2 block text-sm font-bold text-slate-700">اختر الطالب</label>
+              <label className="mb-2.5 block text-base font-black text-foreground">اختر الطالب</label>
               <select
                 value={form.studentId}
                 onChange={(e) => setForm({ ...form, studentId: e.target.value })}
                 required
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 px-4 font-medium outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                className="w-full rounded-2xl border-2 border-border bg-muted/30 py-4 px-5 text-base font-bold text-foreground outline-none transition-all focus:border-primary focus:bg-card focus:ring-4 focus:ring-primary/20 hover:border-primary/50"
               >
                 <option value="">اختر الطالب...</option>
                 {studentsData?.users?.filter(u => u.role === 'STUDENT').map((student) => (
@@ -198,20 +198,20 @@ export const ManageTasks = () => {
 
           {/* Task type */}
           <div>
-            <label className="mb-2 block text-sm font-bold text-slate-700">نوع الورد</label>
-            <div className="grid grid-cols-2 gap-3">
+            <label className="mb-2.5 block text-base font-black text-foreground">نوع الورد</label>
+            <div className="grid grid-cols-2 gap-4">
               {[
-                { value: 'NEW' as const, label: 'حفظ جديد', color: 'emerald' },
-                { value: 'REVISION' as const, label: 'مراجعة', color: 'teal' },
+                { value: 'NEW' as const, label: 'حفظ جديد' },
+                { value: 'REVISION' as const, label: 'مراجعة' },
               ].map((type) => (
                 <button
                   key={type.value}
                   type="button"
                   onClick={() => setForm({ ...form, taskType: type.value })}
-                  className={`rounded-xl border-2 py-3 font-black transition ${
+                  className={`rounded-2xl border-2 py-4 font-black transition-all duration-300 active:scale-95 ${
                     form.taskType === type.value
-                      ? 'border-emerald-600 bg-emerald-50 text-emerald-800'
-                      : 'border-slate-200 text-slate-500 hover:border-slate-300'
+                      ? 'border-primary bg-primary/10 text-primary shadow-sm'
+                      : 'border-border bg-card text-muted-foreground hover:border-primary/50'
                   }`}
                 >
                   {type.label}
@@ -221,9 +221,9 @@ export const ManageTasks = () => {
           </div>
 
           {/* Surah selection */}
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             <div>
-              <label className="mb-2 block text-sm font-bold text-slate-700">السورة</label>
+              <label className="mb-2.5 block text-sm font-black text-foreground">السورة</label>
               <select
                 value={form.surahNumber}
                 onChange={(e) => {
@@ -231,17 +231,17 @@ export const ManageTasks = () => {
                   setForm({ ...form, surahNumber: val, ayahStart: 1, ayahEnd: quranSurahs[val - 1]?.ayahs || 1 });
                 }}
                 required
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 px-3 font-medium outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 appearance-none"
+                className="w-full rounded-2xl border-2 border-border bg-muted/30 py-4 px-4 text-sm font-bold text-foreground outline-none transition-all focus:border-primary focus:bg-card focus:ring-4 focus:ring-primary/20 hover:border-primary/50"
               >
                 {quranSurahs.map((surah) => (
                   <option key={surah.id} value={surah.id}>
-                    {surah.id}. سورة {surah.name} ({surah.ayahs} آية)
+                    {surah.id}. {surah.name} ({surah.ayahs} آية)
                   </option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="mb-2 block text-sm font-bold text-slate-700">آية البداية</label>
+              <label className="mb-2.5 block text-sm font-black text-foreground">آية البداية</label>
               <input
                 type="number"
                 min={1}
@@ -249,11 +249,11 @@ export const ManageTasks = () => {
                 value={form.ayahStart}
                 onChange={(e) => setForm({ ...form, ayahStart: parseInt(e.target.value, 10) || 1 })}
                 required
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 px-3 font-medium outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                className="w-full rounded-2xl border-2 border-border bg-muted/30 py-4 px-4 text-lg font-black text-foreground text-center outline-none transition-all focus:border-primary focus:bg-card focus:ring-4 focus:ring-primary/20 hover:border-primary/50"
               />
             </div>
             <div>
-              <label className="mb-2 block text-sm font-bold text-slate-700">آية النهاية</label>
+              <label className="mb-2.5 block text-sm font-black text-foreground">آية النهاية</label>
               <input
                 type="number"
                 min={form.ayahStart}
@@ -261,15 +261,15 @@ export const ManageTasks = () => {
                 value={form.ayahEnd}
                 onChange={(e) => setForm({ ...form, ayahEnd: parseInt(e.target.value, 10) || 1 })}
                 required
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 px-3 font-medium outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                className="w-full rounded-2xl border-2 border-border bg-muted/30 py-4 px-4 text-lg font-black text-foreground text-center outline-none transition-all focus:border-primary focus:bg-card focus:ring-4 focus:ring-primary/20 hover:border-primary/50"
               />
             </div>
           </div>
 
           {/* Due date */}
           <div>
-            <label className="mb-2 block text-sm font-bold text-slate-700 flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
+            <label className="mb-2.5 flex items-center gap-2 text-base font-black text-foreground">
+              <Calendar className="h-5 w-5 text-primary" />
               تاريخ الاستحقاق
             </label>
             <input
@@ -278,31 +278,33 @@ export const ManageTasks = () => {
               onChange={(e) => setForm({ ...form, dueDate: e.target.value })}
               required
               dir="ltr"
-              className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 px-4 font-medium outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+              className="w-full rounded-2xl border-2 border-border bg-muted/30 py-4 px-5 font-black text-foreground outline-none transition-all focus:border-primary focus:bg-card focus:ring-4 focus:ring-primary/20 hover:border-primary/50"
             />
           </div>
 
           {/* Notes */}
           <div>
-            <label className="mb-2 block text-sm font-bold text-slate-700">ملاحظات (اختياري)</label>
+            <label className="mb-2.5 block text-base font-black text-foreground">ملاحظات والتوجيهات</label>
             <textarea
               value={form.notes}
               onChange={(e) => setForm({ ...form, notes: e.target.value })}
-              rows={3}
+              rows={4}
               maxLength={500}
-              placeholder="أي تعليمات أو ملاحظات إضافية..."
-              className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 px-4 font-medium outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 resize-none"
+              placeholder="اكتب هنا توجيهاتك لتشجيع الطالب... (اختياري)"
+              className="w-full rounded-2xl border-2 border-border bg-muted/30 py-4 px-5 text-base font-bold text-foreground outline-none transition-all focus:border-primary focus:bg-card focus:ring-4 focus:ring-primary/20 hover:border-primary/50 resize-none leading-relaxed"
             />
           </div>
 
-          <button
-            type="submit"
-            disabled={createMutation.isPending}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-700 py-4 font-black text-white shadow-lg shadow-emerald-700/20 transition hover:bg-emerald-800 disabled:opacity-60"
-          >
-            <Save className="h-5 w-5" />
-            {createMutation.isPending ? 'جار الحفظ...' : 'تأكيد الورد'}
-          </button>
+          <div className="pt-4">
+            <button
+              type="submit"
+              disabled={createMutation.isPending}
+              className="group flex w-full items-center justify-center gap-3 rounded-2xl bg-primary py-5 font-black text-lg text-primary-foreground shadow-lg shadow-primary/20 transition-all duration-300 hover:scale-[1.02] hover:bg-primary/90 hover:shadow-xl hover:shadow-primary/30 active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
+            >
+              <Save className="h-6 w-6 transition-transform group-hover:scale-110" />
+              {createMutation.isPending ? 'جاري الاعتماد...' : 'تأكيد الورد وإرساله'}
+            </button>
+          </div>
         </form>
       </div>
     </div>

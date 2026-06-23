@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiCall } from '../../services/api';
 import { Bell, CheckCircle2, Info, Mail, ShieldAlert, Plus, X } from 'lucide-react';
@@ -11,7 +11,7 @@ type Notification = {
   type: 'ANNOUNCEMENT' | 'PRIVATE' | 'AUTO';
   isRead: boolean;
   createdAt: string;
-  sender?: { fullName: string; role: string };
+  sender?: { id: string; fullName: string; role: string };
 };
 
 const typeConfig = {
@@ -78,7 +78,22 @@ export const Notifications = () => {
     onError: (err: any) => alert('خطأ: ' + err.message),
   });
 
+  const acceptStudentMutation = useMutation({
+    mutationFn: ({ studentId, status }: { studentId: string, status: string }) => 
+      apiCall('/users/accept-student', { method: 'POST', body: JSON.stringify({ studentId, status }) }),
+    onSuccess: () => {
+      alert('تم تحديث حالة الطالب بنجاح');
+      qc.invalidateQueries({ queryKey: ['notifications'] });
+    },
+  });
+
   const notifications = data?.notifications ?? [];
+
+  useEffect(() => {
+    if (data?.unreadCount && data.unreadCount > 0) {
+      markAllReadMutation.mutate();
+    }
+  }, [data?.unreadCount]);
 
   const handleSendSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -136,9 +151,9 @@ export const Notifications = () => {
           ))}
         </div>
       ) : notifications.length === 0 ? (
-        <div className="rounded-3xl border-2 border-dashed border-slate-200 p-16 text-center">
-          <Bell className="mx-auto h-12 w-12 text-slate-300" />
-          <p className="mt-4 font-black text-slate-400">لا توجد إشعارات حالياً</p>
+        <div className="rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-700 p-16 text-center">
+          <Bell className="mx-auto h-12 w-12 text-slate-300 dark:text-slate-600" />
+          <p className="mt-4 font-black text-slate-400 dark:text-slate-500">لا توجد إشعارات حالياً</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -152,8 +167,8 @@ export const Notifications = () => {
                 onClick={() => !notif.isRead && markReadMutation.mutate(notif.id)}
                 className={`relative flex gap-4 rounded-2xl border p-4 transition-all ${
                   notif.isRead
-                    ? 'border-slate-200 bg-white'
-                    : 'cursor-pointer border-emerald-200 bg-emerald-50 hover:bg-emerald-100/50'
+                    ? 'border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800'
+                    : 'cursor-pointer border-emerald-200 bg-emerald-50 hover:bg-emerald-100/50 dark:border-emerald-800 dark:bg-emerald-900/30 dark:hover:bg-emerald-900/50'
                 }`}
               >
                 {!notif.isRead && (
@@ -166,20 +181,49 @@ export const Notifications = () => {
                 
                 <div className="flex-1">
                   <div className="flex items-start justify-between gap-4">
-                    <h3 className={`font-black ${notif.isRead ? 'text-slate-700' : 'text-slate-900'}`}>
+                    <h3 className={`font-black ${notif.isRead ? 'text-slate-700 dark:text-slate-300' : 'text-slate-900 dark:text-slate-100'}`}>
                       {notif.title}
                     </h3>
-                    <span className="shrink-0 text-xs font-bold text-slate-400">
+                    <span className="shrink-0 text-xs font-bold text-slate-400 dark:text-slate-500">
                       {timeAgo(new Date(notif.createdAt))}
                     </span>
                   </div>
-                  <p className="mt-1 text-sm text-slate-600 leading-relaxed">
+                  <p className="mt-1 text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
                     {notif.message}
                   </p>
                   {notif.sender && (
                     <p className="mt-2 text-xs font-bold text-slate-400">
                       بواسطة: {notif.sender.fullName}
                     </p>
+                  )}
+                  {notif.title === 'طلب انضمام جديد' && notif.sender?.id && user?.role === 'TEACHER' && (
+                    <div className="mt-4 flex gap-3">
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); acceptStudentMutation.mutate({ studentId: notif.sender!.id, status: 'ACCEPTED' }); }}
+                        disabled={acceptStudentMutation.isPending}
+                        className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-bold hover:bg-emerald-700 transition"
+                      >
+                        قبول الطلب
+                      </button>
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); acceptStudentMutation.mutate({ studentId: notif.sender!.id, status: 'REJECTED' }); }}
+                        disabled={acceptStudentMutation.isPending}
+                        className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-bold hover:bg-red-700 transition"
+                      >
+                        رفض الطلب
+                      </button>
+                    </div>
+                  )}
+                  {notif.isRead && user?.role !== 'STUDENT' && (
+                    <div className="mt-3 flex justify-end">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setIsSendModalOpen(true); }}
+                        className="flex items-center gap-1.5 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 px-3 py-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-300 hover:bg-emerald-200 dark:hover:bg-emerald-800/60 transition-colors"
+                      >
+                        <Plus className="h-3.5 w-3.5" />
+                        إرسال إشعار
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>

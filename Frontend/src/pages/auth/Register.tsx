@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, BookOpen, GraduationCap, Lock, Mail, UserRound, Users } from 'lucide-react';
+import { ArrowLeft, GraduationCap, Lock, Mail, UserRound, Users } from 'lucide-react';
 import { ApiError, apiCall } from '../../services/api';
 import { useAuthStore } from '../../store/authStore';
 import type { User, UserRole } from '../../store/authStore';
+import logoUrl from '../../assets/logo.png';
 
 
 export const Register = () => {
@@ -15,6 +16,7 @@ export const Register = () => {
     email: '',
     phone: '',
     password: '',
+    confirmPassword: '',
     role: 'STUDENT' as Exclude<UserRole, 'ADMIN'>,
   });
   const [error, setError] = useState('');
@@ -22,6 +24,10 @@ export const Register = () => {
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
+    if (formData.password !== formData.confirmPassword) {
+      setError('كلمتا المرور غير متطابقتين');
+      return;
+    }
     setError('');
     setIsLoading(true);
 
@@ -44,8 +50,8 @@ export const Register = () => {
       <section className="grid w-full max-w-6xl overflow-hidden rounded-[2rem] border border-white bg-white shadow-2xl shadow-emerald-900/10 lg:grid-cols-[0.9fr_1.1fr]">
         <div className="hidden bg-emerald-900 p-10 text-white lg:flex lg:flex-col lg:justify-between">
           <div>
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10">
-              <BookOpen className="h-8 w-8" />
+            <div className="flex h-24 w-24 items-center justify-center rounded-2xl bg-transparent overflow-hidden mb-4">
+              <img src={logoUrl} alt="E-Maqra2a Logo" className="h-full w-full object-contain" />
             </div>
             <h1 className="mt-8 text-4xl font-black leading-tight">ابدأ رحلة حفظ منظمة وواضحة</h1>
             <p className="mt-4 text-lg leading-8 text-emerald-50/80">
@@ -171,6 +177,26 @@ export const Register = () => {
                   dir="ltr"
                   className="w-full rounded-xl border border-slate-200 py-3.5 pl-4 pr-12 font-medium outline-none transition focus:border-emerald-600 focus:ring-4 focus:ring-emerald-100"
                   placeholder="8 أحرف على الأقل"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="confirmPassword" className="mb-2 block text-sm font-bold text-slate-700">
+                تأكيد كلمة المرور
+              </label>
+              <div className="relative">
+                <Lock className="absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+                <input
+                  id="confirmPassword"
+                  type="password"
+                  value={formData.confirmPassword}
+                  onChange={(event) => setFormData((value) => ({ ...value, confirmPassword: event.target.value }))}
+                  minLength={8}
+                  required
+                  dir="ltr"
+                  className="w-full rounded-xl border border-slate-200 py-3.5 pl-4 pr-12 font-medium outline-none transition focus:border-emerald-600 focus:ring-4 focus:ring-emerald-100"
+                  placeholder="أعد إدخال كلمة المرور"
                 />
               </div>
             </div>

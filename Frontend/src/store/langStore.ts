@@ -1,0 +1,185 @@
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+
+type Language = 'ar' | 'en' | 'fr';
+
+interface LangState {
+  language: Language;
+  setLanguage: (lang: Language) => void;
+  t: (key: string) => string;
+}
+
+const translations: Record<Language, Record<string, string>> = {
+  ar: {
+    'profile.title': 'الملف الشخصي',
+    'profile.email': 'البريد الإلكتروني',
+    'profile.name': 'الاسم الكامل',
+    'profile.role': 'الصلاحية',
+    'profile.update_info': 'تحديث البيانات',
+    'profile.phone': 'رقم الهاتف',
+    'profile.change_password': 'تغيير كلمة المرور',
+    'profile.old_password': 'كلمة المرور الحالية',
+    'profile.new_password': 'كلمة المرور الجديدة',
+    'profile.confirm_password': 'تأكيد كلمة المرور الجديدة',
+    'profile.save': 'حفظ التعديلات',
+    'profile.help_center': 'مركز المساعدة',
+    'profile.help_desc': 'كيف يمكننا مساعدتك؟ يمكنك كتابة رسالتك وسنقوم بالرد عليك.',
+    'profile.send_admin': 'إرسال للإدارة',
+    'profile.preferences': 'التفضيلات واللغة',
+    'profile.language': 'لغة المنصة (Language)',
+    'profile.theme': 'الوضع الداكن',
+    'nav.dashboard': 'لوحة التحكم',
+    'nav.tasks': 'المهام',
+    'nav.exams': 'الاختبارات',
+    'nav.profile': 'حسابي',
+    'nav.logout': 'تسجيل خروج',
+    'nav.daily_tasks': 'إدارة الورد اليومي',
+    'nav.submissions': 'التسميعات',
+    'nav.sessions': 'الجلسات الحية',
+    'nav.tajweed': 'أحكام التجويد',
+    'nav.content': 'المحتوى الإسلامي',
+    'nav.students': 'الطلاب',
+    'nav.classes': 'الفصول',
+    'nav.reports': 'التقارير',
+    'nav.messages': 'الرسائل',
+    'nav.notifications': 'الإشعارات',
+    'nav.admin_dashboard': 'لوحة الإدارة',
+    'nav.teacher_dashboard': 'لوحة المعلم',
+    'nav.student_dashboard': 'لوحة الطالب',
+    'dashboard.welcome': 'أهلاً بك',
+    'dashboard.stats.completedTasks': 'مهام مكتملة',
+    'dashboard.stats.pendingTasks': 'مهام قيد التنفيذ',
+    'dashboard.stats.completedExams': 'اختبارات منجزة',
+    'dashboard.stats.activeTasks': 'مهام نشطة',
+    'dashboard.stats.exams': 'الاختبارات',
+    'dashboard.stats.pendingReviews': 'تسميعات للمراجعة',
+    'dashboard.stats.students': 'الطلاب',
+    'dashboard.stats.teachers': 'المعلمون',
+    'dashboard.stats.users': 'المستخدمون',
+    'dashboard.stats.contentItems': 'مواد المحتوى',
+    'dashboard.stats.notifications': 'الإشعارات',
+  },
+  en: {
+    'profile.title': 'Profile',
+    'profile.email': 'Email',
+    'profile.name': 'Full Name',
+    'profile.role': 'Role',
+    'profile.update_info': 'Update Information',
+    'profile.phone': 'Phone Number',
+    'profile.change_password': 'Change Password',
+    'profile.old_password': 'Current Password',
+    'profile.new_password': 'New Password',
+    'profile.confirm_password': 'Confirm New Password',
+    'profile.save': 'Save Changes',
+    'profile.help_center': 'Help Center',
+    'profile.help_desc': 'How can we help? Write your message and we will respond.',
+    'profile.send_admin': 'Send to Admin',
+    'profile.preferences': 'Preferences & Language',
+    'profile.language': 'Platform Language',
+    'profile.theme': 'Dark Mode',
+    'nav.dashboard': 'Dashboard',
+    'nav.tasks': 'Tasks',
+    'nav.exams': 'Exams',
+    'nav.profile': 'Profile',
+    'nav.logout': 'Logout',
+    'nav.daily_tasks': 'Daily Tasks',
+    'nav.submissions': 'Submissions',
+    'nav.sessions': 'Live Sessions',
+    'nav.tajweed': 'Tajweed Rules',
+    'nav.content': 'Islamic Content',
+    'nav.students': 'Students',
+    'nav.classes': 'Classes',
+    'nav.reports': 'Reports',
+    'nav.messages': 'Messages',
+    'nav.notifications': 'Notifications',
+    'nav.admin_dashboard': 'Admin Dashboard',
+    'nav.teacher_dashboard': 'Teacher Dashboard',
+    'nav.student_dashboard': 'Student Dashboard',
+    'dashboard.welcome': 'Welcome',
+    'dashboard.stats.completedTasks': 'Completed Tasks',
+    'dashboard.stats.pendingTasks': 'Pending Tasks',
+    'dashboard.stats.completedExams': 'Completed Exams',
+    'dashboard.stats.activeTasks': 'Active Tasks',
+    'dashboard.stats.exams': 'Exams',
+    'dashboard.stats.pendingReviews': 'Pending Reviews',
+    'dashboard.stats.students': 'Students',
+    'dashboard.stats.teachers': 'Teachers',
+    'dashboard.stats.users': 'Users',
+    'dashboard.stats.contentItems': 'Content Items',
+    'dashboard.stats.notifications': 'Notifications',
+  },
+  fr: {
+    'profile.title': 'Profil',
+    'profile.email': 'E-mail',
+    'profile.name': 'Nom complet',
+    'profile.role': 'Rôle',
+    'profile.update_info': 'Mettre à jour les informations',
+    'profile.phone': 'Numéro de téléphone',
+    'profile.change_password': 'Changer le mot de passe',
+    'profile.old_password': 'Mot de passe actuel',
+    'profile.new_password': 'Nouveau mot de passe',
+    'profile.confirm_password': 'Confirmer le nouveau mot de passe',
+    'profile.save': 'Enregistrer',
+    'profile.help_center': 'Centre d\'aide',
+    'profile.help_desc': 'Comment pouvons-nous vous aider ? Écrivez votre message.',
+    'profile.send_admin': 'Envoyer à l\'admin',
+    'profile.preferences': 'Préférences et langue',
+    'profile.language': 'Langue de la plateforme',
+    'profile.theme': 'Mode sombre',
+    'nav.dashboard': 'Tableau de bord',
+    'nav.tasks': 'Tâches',
+    'nav.exams': 'Examens',
+    'nav.profile': 'Profil',
+    'nav.logout': 'Déconnexion',
+    'nav.daily_tasks': 'Tâches Quotidiennes',
+    'nav.submissions': 'Soumissions',
+    'nav.sessions': 'Sessions en direct',
+    'nav.tajweed': 'Règles de Tajwid',
+    'nav.content': 'Contenu Islamique',
+    'nav.students': 'Étudiants',
+    'nav.classes': 'Classes',
+    'nav.reports': 'Rapports',
+    'nav.messages': 'Messages',
+    'nav.notifications': 'Notifications',
+    'nav.admin_dashboard': 'Tableau de bord Admin',
+    'nav.teacher_dashboard': 'Tableau de bord Enseignant',
+    'nav.student_dashboard': 'Tableau de bord Étudiant',
+    'dashboard.welcome': 'Bienvenue',
+    'dashboard.stats.completedTasks': 'Tâches terminées',
+    'dashboard.stats.pendingTasks': 'Tâches en attente',
+    'dashboard.stats.completedExams': 'Examens terminés',
+    'dashboard.stats.activeTasks': 'Tâches actives',
+    'dashboard.stats.exams': 'Examens',
+    'dashboard.stats.pendingReviews': 'Évaluations en attente',
+    'dashboard.stats.students': 'Étudiants',
+    'dashboard.stats.teachers': 'Enseignants',
+    'dashboard.stats.users': 'Utilisateurs',
+    'dashboard.stats.contentItems': 'Contenu',
+    'dashboard.stats.notifications': 'Notifications',
+  }
+};
+
+export const useLangStore = create<LangState>()(
+  persist(
+    (set, get) => ({
+      language: 'ar',
+      setLanguage: (lang) => {
+        set({ language: lang });
+        // Also update HTML dir
+        document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+      },
+      t: (key) => {
+        const lang = get().language;
+        return translations[lang][key] || key;
+      },
+    }),
+    {
+      name: 'lang-storage',
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          document.documentElement.dir = state.language === 'ar' ? 'rtl' : 'ltr';
+        }
+      },
+    }
+  )
+);

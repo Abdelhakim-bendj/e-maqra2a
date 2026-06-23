@@ -9,6 +9,11 @@ export interface User {
   role: UserRole;
   avatarUrl?: string | null;
   phone?: string | null;
+  studentProfile?: {
+    teacherId: string | null;
+    teacherStatus: 'PENDING' | 'ACCEPTED' | 'REJECTED';
+    classId: string | null;
+  };
 }
 
 interface AuthState {

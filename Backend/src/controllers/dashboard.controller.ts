@@ -104,14 +104,48 @@ async function getAdminDashboard() {
 
 export const getDashboard = async (req: AuthRequest, res: Response): Promise<void> => {
   const role = req.user!.role;
-  const userId = req.user!.id;
+  try {
+    const role = req.user!.role;
+    const userId = req.user!.id;
 
-  const dashboard =
-    role === 'STUDENT'
-      ? await getStudentDashboard(userId)
-      : role === 'TEACHER'
-        ? await getTeacherDashboard(userId)
-        : await getAdminDashboard();
+    const dashboard =
+      role === 'STUDENT'
+        ? await getStudentDashboard(userId)
+        : role === 'TEACHER'
+          ? await getTeacherDashboard(userId)
+          : await getAdminDashboard();
 
-  sendSuccess(res, { dashboard }, 'Dashboard loaded');
+    sendSuccess(res, { dashboard }, 'Dashboard loaded successfully');
+  } catch (error) {
+    console.error('Dashboard Error:', error);
+    sendError(res, 500, 'Failed to load dashboard');
+  }
+};
+
+export const getNavbarStats = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const role = req.user!.role;
+    const userId = req.user!.id;
+    let newTasks = 0;
+    let newExams = 0;
+    let pendingSubmissions = 0;
+
+    if (role === 'STUDENT') {
+      newTasks = await prisma.memorizationTask.count({ where: { studentId: userId, status: 'ASSIGNED' } });
+      const profile = await prisma.studentProfile.findUnique({ where: { userId } });
+      if (profile?.teacherId) {
+        newExams = await prisma.exam.count({
+          where: { teacherId: profile.teacherId, status: 'PUBLISHED', startTime: { gte: new Date() } }
+        });
+      }
+    } else if (role === 'TEACHER') {
+      pendingSubmissions = await prisma.memorizationSubmission.count({
+        where: { status: 'PENDING', task: { teacherId: userId } }
+      });
+    }
+
+    sendSuccess(res, { newTasks, newExams, pendingSubmissions }, 'Navbar stats loaded');
+  } catch (error) {
+    sendError(res, 500, 'Failed to load navbar stats');
+  }
 };

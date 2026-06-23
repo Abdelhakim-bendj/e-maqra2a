@@ -55,24 +55,24 @@ export const Tasks = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between animate-fade-in">
         <div>
-          <h1 className="text-3xl font-black text-slate-950">المهام اليومية</h1>
-          <p className="mt-1 text-slate-500">تابع مهام الحفظ والمراجعة اليومية</p>
+          <h1 className="text-3xl font-black text-foreground tracking-tight">المهام اليومية</h1>
+          <p className="mt-1.5 text-muted-foreground font-medium">تابع مهام الحفظ والمراجعة اليومية وانطلق نحو القمة</p>
         </div>
         {user?.role === 'TEACHER' && (
           <Link
             to="/manage/tasks"
-            className="inline-flex items-center gap-2 rounded-2xl bg-emerald-700 px-5 py-3 font-black text-white shadow-lg shadow-emerald-700/20 transition hover:-translate-y-0.5 hover:bg-emerald-800"
+            className="inline-flex items-center gap-3 rounded-2xl bg-primary px-6 py-4 font-black text-primary-foreground shadow-lg shadow-primary/20 transition-all duration-300 hover:scale-105 active:scale-95 hover:shadow-primary/40 text-lg"
           >
-            <Plus className="h-4 w-4" />
+            <Plus className="h-7 w-7" />
             إنشاء مهمة
           </Link>
         )}
       </div>
 
       {/* Filter tabs */}
-      <div className="flex gap-2 flex-wrap">
+      <div className="flex gap-3 flex-wrap animate-fade-in" style={{ animationDelay: '100ms' }}>
         {[
           { value: '', label: 'الكل' },
           { value: 'ASSIGNED', label: 'جارية' },
@@ -82,10 +82,10 @@ export const Tasks = () => {
           <button
             key={tab.value}
             onClick={() => setFilter(tab.value)}
-            className={`rounded-xl border px-4 py-2 text-sm font-bold transition ${
+            className={`rounded-2xl border-2 px-6 py-2.5 text-sm font-black transition-all duration-300 active:scale-95 ${
               filter === tab.value
-                ? 'border-emerald-600 bg-emerald-50 text-emerald-800'
-                : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300'
+                ? 'border-primary bg-primary/10 text-primary shadow-sm'
+                : 'border-transparent bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground'
             }`}
           >
             {tab.label}
@@ -95,19 +95,22 @@ export const Tasks = () => {
 
       {/* Tasks list */}
       {isLoading ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className="h-40 animate-pulse rounded-3xl bg-slate-200" />
+            <div key={i} className="h-64 animate-pulse rounded-[2rem] bg-muted" />
           ))}
         </div>
       ) : tasks.length === 0 ? (
-        <div className="rounded-3xl border-2 border-dashed border-slate-200 p-16 text-center">
-          <BookOpen className="mx-auto h-12 w-12 text-slate-300" />
-          <p className="mt-4 font-black text-slate-400">لا توجد مهام</p>
+        <div className="rounded-[2rem] border-2 border-dashed border-border bg-card/50 p-24 text-center animate-fade-in">
+          <div className="mx-auto flex h-32 w-32 items-center justify-center rounded-full bg-muted mb-8">
+            <BookOpen className="h-16 w-16 text-muted-foreground/50" />
+          </div>
+          <p className="text-xl font-black text-foreground">لا توجد مهام حالياً</p>
+          <p className="mt-2 text-sm font-bold text-muted-foreground">استمتع بوقتك، أو راجع ما حفظته سابقاً.</p>
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {tasks.map((task) => {
+        <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+          {tasks.map((task, index) => {
             const cfg = statusConfig[task.status];
             const Icon = cfg.icon;
             const isOverdue = new Date(task.dueDate) < new Date() && task.status !== 'COMPLETED';
@@ -115,35 +118,44 @@ export const Tasks = () => {
             return (
               <div
                 key={task.id}
-                className={`group relative rounded-3xl border bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg ${
-                  isOverdue ? 'border-red-200 bg-red-50/30' : 'border-slate-200'
+                className={`group relative flex flex-col justify-between overflow-hidden rounded-[2rem] border-2 bg-card p-6 shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl animate-slide-up ${
+                  isOverdue ? 'border-destructive/30 bg-destructive/5' : 'border-border/50 hover:border-primary/30'
                 }`}
+                style={{ animationDelay: `${index * 100}ms` }}
               >
                 {/* Task type badge */}
-                <div className="mb-4 flex items-center justify-between">
-                  <span className="rounded-xl bg-slate-100 px-3 py-1 text-xs font-black text-slate-600">
+                <div className="mb-6 flex items-center justify-between">
+                  <span className="rounded-xl bg-accent/10 px-3.5 py-1.5 text-xs font-black text-primary">
                     {taskTypeLabel[task.taskType]}
                   </span>
-                  <span className={`flex items-center gap-1 rounded-xl border px-2.5 py-1 text-xs font-bold ${cfg.color}`}>
-                    <Icon className="h-3.5 w-3.5" />
+                  <span className={`flex items-center gap-1.5 rounded-xl border-2 px-3 py-1.5 text-xs font-black shadow-sm ${
+                    task.status === 'COMPLETED' ? 'bg-success/10 text-success border-success/20' : 
+                    isOverdue ? 'bg-destructive/10 text-destructive border-destructive/20' : 
+                    'bg-secondary/10 text-secondary border-secondary/20'
+                  }`}>
+                    <Icon className="h-4 w-4" />
                     {cfg.label}
                   </span>
                 </div>
 
                 {/* Surah info */}
-                <div className="mb-4">
-                  <p className="text-xs font-bold text-slate-400 mb-1">السورة والآيات</p>
-                  <h3 className="text-xl font-black text-slate-950">
-                    سورة {quranSurahs[task.surahNumber - 1]?.name || task.surahNumber}
-                  </h3>
-                  <p className="text-slate-600 font-bold">
-                    الآيات {task.ayahStart} – {task.ayahEnd}
-                  </p>
+                <div className="mb-6 flex items-start gap-4">
+                  <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary transition-transform group-hover:scale-110">
+                     <BookOpen className="h-10 w-10" />
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-black text-foreground tracking-tight">
+                      سورة {quranSurahs[task.surahNumber - 1]?.name || task.surahNumber}
+                    </h3>
+                    <p className="mt-1 text-sm font-bold text-muted-foreground">
+                      الآيات {task.ayahStart} – {task.ayahEnd}
+                    </p>
+                  </div>
                 </div>
 
                 {/* Due date */}
-                <div className="mb-4 flex items-center gap-2 text-sm text-slate-500">
-                  <Clock className="h-4 w-4" />
+                <div className="mb-6 flex items-center gap-3 rounded-2xl bg-muted/50 p-4 text-base font-bold text-muted-foreground">
+                  <Clock className="h-7 w-7 text-primary" />
                   <span>موعد التسليم: {
                     (() => {
                       const d = new Date(task.dueDate);
@@ -153,41 +165,41 @@ export const Tasks = () => {
                 </div>
 
                 {task.notes && (
-                  <p className="mb-4 rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-800 font-medium">
+                  <p className="mb-6 rounded-2xl bg-amber-500/10 px-4 py-3 text-xs font-bold leading-relaxed text-amber-700">
                     {task.notes}
                   </p>
                 )}
 
                 {/* Actions */}
-                <div className="flex gap-2">
+                <div className="mt-auto flex gap-3">
                   {user?.role === 'STUDENT' && task.status === 'ASSIGNED' && (
                     <>
                       <button
                         onClick={() => completeMutation.mutate(task.id)}
                         disabled={completeMutation.isPending}
-                        className="flex-1 rounded-xl bg-emerald-700 py-2 text-sm font-black text-white transition hover:bg-emerald-800 disabled:opacity-60"
+                        className="flex-1 rounded-2xl bg-primary py-4 text-base font-black text-primary-foreground shadow-md transition-all duration-300 hover:scale-105 hover:bg-primary/90 active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
                       >
-                        {completeMutation.isPending ? '...' : 'إتمام'}
+                        {completeMutation.isPending ? 'جاري الإتمام...' : 'إتمام المهمة'}
                       </button>
                       <Link
                         to={`/tasks/${task.id}/submit`}
-                        className="flex items-center justify-center rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-600 transition hover:bg-slate-50"
+                        className="flex items-center justify-center rounded-2xl border-2 border-border bg-card px-5 py-4 text-muted-foreground transition-all duration-300 hover:scale-105 hover:bg-muted active:scale-95"
                       >
-                        <ChevronLeft className="h-4 w-4" />
+                        <ChevronLeft className="h-7 w-7" />
                       </Link>
                     </>
                   )}
                   {user?.role !== 'STUDENT' && (
-                    <div className="flex w-full items-center justify-between">
-                      <span className="text-sm text-slate-500 font-bold">{task.student.fullName}</span>
-                      <div className="flex gap-2">
+                    <div className="flex w-full items-center justify-between rounded-2xl bg-muted/30 p-2">
+                      <span className="text-sm text-foreground font-black px-2">{task.student.fullName}</span>
+                      <div className="flex gap-1.5">
                         <Link
                           to="/manage/tasks"
                           state={{ editTask: task }}
-                          className="text-emerald-500 hover:text-emerald-700 bg-emerald-50 p-1.5 rounded-lg transition"
+                          className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary transition-all hover:bg-primary hover:text-primary-foreground active:scale-95"
                           title="تعديل"
                         >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
                         </Link>
                         <button
                           onClick={() => {
@@ -195,10 +207,10 @@ export const Tasks = () => {
                               deleteMutation.mutate(task.id);
                             }
                           }}
-                          className="text-red-400 hover:text-red-600 bg-red-50 p-1.5 rounded-lg transition"
+                          className="flex h-10 w-10 items-center justify-center rounded-xl bg-destructive/10 text-destructive transition-all hover:bg-destructive hover:text-destructive-foreground active:scale-95"
                           title="حذف"
                         >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                         </button>
                       </div>
                     </div>

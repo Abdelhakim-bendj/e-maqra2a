@@ -1,18 +1,26 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Lock } from 'lucide-react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { ArrowLeft, Lock, KeyRound } from 'lucide-react';
 import { ApiError, apiCall } from '../../services/api';
-
 
 export const ResetPassword = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const initialToken = useMemo(() => searchParams.get('token') || '', [searchParams]);
-  const [token, setToken] = useState(initialToken);
+  const location = useLocation();
+  const email = location.state?.email as string | undefined;
+
+  const [token, setToken] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!email) {
+      navigate('/forgot-password', { replace: true });
+    }
+  }, [email, navigate]);
+
+  if (!email) return null;
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -22,7 +30,7 @@ export const ResetPassword = () => {
     try {
       await apiCall<null>('/auth/reset-password', {
         method: 'POST',
-        body: JSON.stringify({ token, password }),
+        body: JSON.stringify({ email, token, password }),
       });
       navigate('/login', { replace: true, state: { message: 'تم تحديث كلمة المرور بنجاح.' } });
     } catch (err) {
@@ -41,18 +49,30 @@ export const ResetPassword = () => {
         {error && <div className="mt-6 rounded-xl bg-red-50 p-4 text-sm font-bold text-red-700">{error}</div>}
 
         <form onSubmit={handleSubmit} className="mt-7 space-y-5">
+          <div className="rounded-xl bg-primary/10 p-4 text-center">
+            <p className="text-sm font-bold text-primary">
+              تم إرسال رمز التحقق إلى: <br/> <span className="text-lg" dir="ltr">{email}</span>
+            </p>
+          </div>
+
           <div>
             <label htmlFor="token" className="mb-2 block text-sm font-bold text-slate-700">
-              رمز إعادة التعيين
+              رمز التحقق (6 أرقام)
             </label>
-            <input
-              id="token"
-              value={token}
-              onChange={(event) => setToken(event.target.value)}
-              required
-              dir="ltr"
-              className="w-full rounded-xl border border-slate-200 py-3.5 px-4 font-medium outline-none transition focus:border-emerald-600 focus:ring-4 focus:ring-emerald-100"
-            />
+            <div className="relative">
+              <KeyRound className="absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+              <input
+                id="token"
+                type="text"
+                maxLength={6}
+                value={token}
+                onChange={(event) => setToken(event.target.value.replace(/\D/g, ''))}
+                required
+                dir="ltr"
+                placeholder="000000"
+                className="w-full rounded-xl border border-slate-200 py-3.5 pl-4 pr-12 text-center text-2xl font-black tracking-[1em] outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/20"
+              />
+            </div>
           </div>
 
           <div>

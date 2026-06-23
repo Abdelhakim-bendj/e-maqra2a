@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiCall } from '../../services/api';
 import { useAuthStore } from '../../store/authStore';
@@ -38,10 +39,19 @@ const timeAgo = (date: Date) => {
 export const Messages = () => {
   const { user } = useAuthStore();
   const qc = useQueryClient();
+  const location = useLocation();
   const [activePartnerId, setActivePartnerId] = useState<string | null>(null);
   const [messageInput, setMessageInput] = useState('');
   const [isNewChatModalOpen, setIsNewChatModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    if (location.state?.openChatWith) {
+      setActivePartnerId(location.state.openChatWith);
+      // Optional: clean up state so a refresh doesn't keep reopening the same chat
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   const { data: usersData, isLoading: usersLoading } = useQuery({
     queryKey: ['users'],

@@ -35,6 +35,7 @@ const publicUserSelect = {
       currentJuz: true,
       currentSurah: true,
       teacherId: true,
+      teacherStatus: true,
       classId: true,
       class: { select: { name: true } },
     },
@@ -70,12 +71,9 @@ export const listUsers = async (req: AuthRequest, res: Response): Promise<void> 
       select: { classId: true, teacherId: true }
     });
     
-    // Students see their teacher, students in same class, and admins
-    const orConditions: any[] = [{ role: 'ADMIN' }];
+    // Students see their teacher, students in same class, admins, and all teachers (so they can select one)
+    const orConditions: any[] = [{ role: 'ADMIN' }, { role: 'TEACHER' }];
     
-    if (profile?.teacherId) {
-      orConditions.push({ id: profile.teacherId });
-    }
     if (profile?.classId) {
       orConditions.push({ role: 'STUDENT', studentProfile: { is: { classId: profile.classId } } });
     }
@@ -170,5 +168,79 @@ export const updateUser = async (req: AuthRequest, res: Response): Promise<void>
       return;
     }
     throw error;
+  }
+};
+
+export const selectTeacher = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { teacherId } = z.object({ teacherId: z.string().uuid() }).parse(req.body);
+    const userId = req.user!.id;
+
+    if (req.user!.role !== 'STUDENT') {
+      sendError(res, 403, 'Only students can select a teacher'); return;
+    }
+
+    const teacher = await prisma.user.findUnique({ where: { id: teacherId, role: 'TEACHER' } });
+    if (!teacher) {
+      sendError(res, 404, 'Teacher not found'); return;
+    }
+
+    const profile = await prisma.studentProfile.update({
+      where: { userId },
+      data: { teacherId, teacherStatus: 'PENDING' },
+    });
+
+    await prisma.notification.create({
+      data: {
+        title: 'طلب انضمام جديد',
+        message: `يرغب الطالب ${req.user!.fullName} في الانضمام إلى مجموعتك.`,
+        type: 'AUTO',
+        recipientId: teacherId,
+        senderId: userId,
+      }
+    });
+
+    sendSuccess(res, { profile }, 'Teacher selected, waiting for approval');
+  } catch (error) {
+    if (error instanceof z.ZodError) { sendError(res, 400, 'Validation failed', zodToFieldErrors(error)); return; }
+    sendError(res, 500, 'Internal server error');
+  }
+};
+
+export const acceptStudent = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { studentId, status } = z.object({ 
+      studentId: z.string().uuid(),
+      status: z.enum(['ACCEPTED', 'REJECTED'])
+    }).parse(req.body);
+
+    if (req.user!.role !== 'TEACHER') {
+      sendError(res, 403, 'Only teachers can accept students'); return;
+    }
+
+    const profile = await prisma.studentProfile.findUnique({ where: { userId: studentId } });
+    if (!profile || profile.teacherId !== req.user!.id) {
+      sendError(res, 403, 'Student not assigned to you'); return;
+    }
+
+    const updated = await prisma.studentProfile.update({
+      where: { userId: studentId },
+      data: { teacherStatus: status },
+    });
+
+    await prisma.notification.create({
+      data: {
+        title: status === 'ACCEPTED' ? 'تم قبول طلب الانضمام' : 'تم رفض طلب الانضمام',
+        message: status === 'ACCEPTED' ? `لقد تم قبولك في مجموعة المعلم ${req.user!.fullName}.` : `نعتذر، لم يتم قبول طلب انضمامك لمجموعة المعلم ${req.user!.fullName}.`,
+        type: 'AUTO',
+        recipientId: studentId,
+        senderId: req.user!.id,
+      }
+    });
+
+    sendSuccess(res, { profile: updated }, `Student ${status.toLowerCase()}`);
+  } catch (error) {
+    if (error instanceof z.ZodError) { sendError(res, 400, 'Validation failed', zodToFieldErrors(error)); return; }
+    sendError(res, 500, 'Internal server error');
   }
 };

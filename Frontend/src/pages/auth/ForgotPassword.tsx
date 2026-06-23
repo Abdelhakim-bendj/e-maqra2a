@@ -1,31 +1,26 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Mail } from 'lucide-react';
 import { ApiError, apiCall } from '../../services/api';
 
-
 export const ForgotPassword = () => {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
-  const [message, setMessage] = useState('');
-  const [devToken, setDevToken] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
     setError('');
-    setMessage('');
-    setDevToken('');
     setIsLoading(true);
 
     try {
-      const data = await apiCall<{ resetToken?: string }>('/auth/forgot-password', {
+      await apiCall('/auth/forgot-password', {
         method: 'POST',
         body: JSON.stringify({ email }),
       });
-      setMessage('إذا كان البريد مسجلاً، ستصلك تعليمات إعادة التعيين.');
-      setDevToken(data?.resetToken || '');
+      navigate('/reset-password', { state: { email } });
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'تعذر إرسال طلب إعادة التعيين.');
     } finally {
@@ -40,15 +35,6 @@ export const ForgotPassword = () => {
         <p className="mt-2 text-slate-500">أدخل بريدك الإلكتروني وسنرسل لك تعليمات إعادة التعيين.</p>
 
         {error && <div className="mt-6 rounded-xl bg-red-50 p-4 text-sm font-bold text-red-700">{error}</div>}
-        {message && <div className="mt-6 rounded-xl bg-emerald-50 p-4 text-sm font-bold text-emerald-800">{message}</div>}
-        {devToken && (
-          <Link
-            to={`/reset-password?token=${encodeURIComponent(devToken)}`}
-            className="mt-3 block rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm font-bold text-amber-800"
-          >
-            رابط التطوير: الانتقال لإعادة تعيين كلمة المرور
-          </Link>
-        )}
 
         <form onSubmit={handleSubmit} className="mt-7 space-y-5">
           <div>

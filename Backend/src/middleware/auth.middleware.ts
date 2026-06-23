@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import prisma from '../utils/prisma';
 import { sendError } from '../utils/api-response';
 import { verifyAccessToken } from '../utils/security';
-import { Role } from '../types/auth';
+import { Role } from '@prisma/client';
 
 export interface AuthRequest extends Request {
   user?: {

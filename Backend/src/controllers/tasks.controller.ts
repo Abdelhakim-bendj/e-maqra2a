@@ -5,7 +5,7 @@ import { AuthRequest } from '../middleware/auth.middleware';
 import { sendError, sendSuccess, zodToFieldErrors } from '../utils/api-response';
 import { writeAuditLog } from '../utils/audit';
 
-const createTaskSchema = z.object({
+const baseTaskSchema = z.object({
   studentId: z.string().uuid('معرف الطالب غير صالح'),
   taskType: z.enum(['NEW', 'REVISION']),
   surahNumber: z.number().int().min(1).max(114),
@@ -13,7 +13,9 @@ const createTaskSchema = z.object({
   ayahEnd: z.number().int().min(1),
   dueDate: z.coerce.date({ invalid_type_error: 'تاريخ الاستحقاق غير صالح' }),
   notes: z.string().max(500).optional(),
-}).refine((d) => d.ayahEnd >= d.ayahStart, {
+});
+
+const createTaskSchema = baseTaskSchema.refine((d) => d.ayahEnd >= d.ayahStart, {
   message: 'آية النهاية يجب أن تكون بعد أو مساوية لآية البداية',
   path: ['ayahEnd'],
 });
@@ -230,7 +232,7 @@ export const createBulkTask = async (req: AuthRequest, res: Response): Promise<v
 // PUT /api/tasks/:id
 export const updateTask = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const data = createTaskSchema.partial().parse(req.body);
+    const data = baseTaskSchema.partial().parse(req.body);
     const task = await prisma.memorizationTask.findUnique({ where: { id: req.params.id } });
     if (!task) { sendError(res, 404, 'Task not found'); return; }
     if (task.teacherId !== req.user!.id && req.user!.role !== 'ADMIN') {

@@ -12,6 +12,7 @@ enum Role {
   ADMIN
   TEACHER
   STUDENT
+  PARENT
 }
 
 enum TaskType {
@@ -89,6 +90,7 @@ model User {
   role          Role     @default(STUDENT)
   phone         String?
   avatarUrl     String?  @map("avatar_url")
+  bio           String?  @db.Text
   isActive      Boolean  @default(true) @map("is_active")
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
@@ -112,6 +114,14 @@ model User {
   refreshTokens      RefreshToken[]
   passwordResetTokens PasswordResetToken[]
   auditLogs          AuditLog[]
+  
+  // LMS Generalized Relations
+  organizationId     String?              @map("organization_id")
+  organization       Organization?        @relation(fields: [organizationId], references: [id])
+  parentChildren     ParentChild[]        @relation("ParentRelation")
+  childParents       ParentChild[]        @relation("ChildRelation")
+  inventory          UserInventory[]
+  genericSubmissions AssignmentSubmission[]
 
   @@map("users")
 }
@@ -171,9 +181,14 @@ model StudentProfile {
   teacherId      String?   @map("teacher_id")
   classId        String?   @map("class_id")
   class          Class?    @relation(fields: [classId], references: [id])
+  teacherStatus  String    @default("PENDING") @map("teacher_status") // PENDING, ACCEPTED, REJECTED
   currentJuz     Int?      @map("current_juz")
   currentSurah   Int?      @map("current_surah")
   notes          String?
+
+  // Gamification Fields
+  coins          Int       @default(0)
+  xp             Int       @default(0)
 
   @@index([teacherId])
   @@index([classId])
@@ -418,4 +433,128 @@ model IslamicContent {
   orderIndex  Int             @map("order_index")
 
   @@map("islamic_content")
+}
+
+// ============================================================================
+// LMS GENERALIZED MODELS (Added for Next-Gen EdTech features)
+// ============================================================================
+
+model Organization {
+  id          String   @id @default(uuid())
+  name        String
+  domain      String?  @unique
+  branding    Json?    // e.g. { primaryColor: '#...', logoUrl: '...' }
+  createdAt   DateTime @default(now()) @map("created_at")
+  
+  users       User[]
+  courses     Course[]
+
+  @@map("organizations")
+}
+
+model ParentChild {
+  id        String   @id @default(uuid())
+  parentId  String   @map("parent_id")
+  parent    User     @relation("ParentRelation", fields: [parentId], references: [id], onDelete: Cascade)
+  childId   String   @map("child_id")
+  child     User     @relation("ChildRelation", fields: [childId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([parentId, childId])
+  @@map("parent_children")
+}
+
+model Course {
+  id             String       @id @default(uuid())
+  organizationId String?      @map("organization_id") // Optional for global courses
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  title          String
+  description    String?
+  thumbnailUrl   String?      @map("thumbnail_url")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  
+  modules        Module[]
+
+  @@map("courses")
+}
+
+model Module {
+  id          String   @id @default(uuid())
+  courseId    String   @map("course_id")
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  title       String
+  orderIndex  Int      @map("order_index")
+  
+  lessons     Lesson[]
+
+  @@map("modules")
+}
+
+model Lesson {
+  id          String   @id @default(uuid())
+  moduleId    String   @map("module_id")
+  module      Module   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  title       String
+  content     String?  // Rich text or markdown
+  videoUrl    String?  @map("video_url")
+  orderIndex  Int      @map("order_index")
+  
+  assignments Assignment[]
+
+  @@map("lessons")
+}
+
+model Assignment {
+  id             String   @id @default(uuid())
+  lessonId       String   @map("lesson_id")
+  lesson         Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  title          String
+  description    String?
+  assignmentType String   // e.g. "QUIZ", "UPLOAD", "ESSAY", "QURAN_MEMORIZATION"
+  xpReward       Int      @default(10) @map("xp_reward")
+  coinReward     Int      @default(5) @map("coin_reward")
+  
+  submissions    AssignmentSubmission[]
+
+  @@map("assignments")
+}
+
+model AssignmentSubmission {
+  id           String     @id @default(uuid())
+  assignmentId String     @map("assignment_id")
+  assignment   Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  studentId    String     @map("student_id")
+  student      User       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  content      Json?      // Generic payload (text, URLs, quiz answers)
+  status       String     @default("PENDING") // PENDING, GRADED
+  score        Int?
+  submittedAt  DateTime   @default(now()) @map("submitted_at")
+
+  @@index([studentId])
+  @@map("assignment_submissions")
+}
+
+model ShopItem {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  price       Int
+  type        String   // e.g. "AVATAR_BORDER", "THEME", "BADGE"
+  assetUrl    String?  @map("asset_url")
+  
+  inventory   UserInventory[]
+
+  @@map("shop_items")
+}
+
+model UserInventory {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  itemId      String   @map("item_id")
+  item        ShopItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  acquiredAt  DateTime @default(now()) @map("acquired_at")
+
+  @@unique([userId, itemId])
+  @@map("user_inventory")
 }

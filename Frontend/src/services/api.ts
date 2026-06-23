@@ -12,7 +12,10 @@ export class ApiError extends Error {
   errors?: Array<{ field: string; message: string }>;
 
   constructor(message: string, status: number, errors?: Array<{ field: string; message: string }>) {
-    super(message);
+    const formattedMessage = errors && errors.length > 0 
+      ? errors.map(e => e.message).join('\n') 
+      : message;
+    super(formattedMessage);
     this.status = status;
     this.errors = errors;
   }

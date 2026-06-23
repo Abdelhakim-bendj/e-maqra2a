@@ -28,7 +28,8 @@ const Sessions = lazy(() => import('./pages/sessions/Sessions').then(module => (
 const Classes = lazy(() => import('./pages/classes/Classes').then(module => ({ default: module.Classes })));
 const Students = lazy(() => import('./pages/students/Students').then(module => ({ default: module.Students })));
 const Reports = lazy(() => import('./pages/reports/Reports').then(module => ({ default: module.Reports })));
-
+const Profile = lazy(() => import('./pages/profile/Profile').then(module => ({ default: module.Profile })));
+const LandingPage = lazy(() => import('./pages/landing/LandingPage').then(module => ({ default: module.LandingPage })));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -83,6 +84,25 @@ function ProtectedRoute({ children }: { children: ReactElement }) {
   return children;
 }
 
+function PublicLandingRoute({ children }: { children: ReactElement }) {
+  const { isAuthenticated, isLoading } = useAuthStore();
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[50vh] items-center justify-center">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-700" />
+      </div>
+    );
+  }
+
+  // If already logged in, skip the landing page and go straight to the app
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return children;
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -94,10 +114,11 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
 
-          <Route path="/" element={<MainLayout />}>
-            <Route index element={<Navigate to="/dashboard" replace />} />
+          <Route path="/" element={<PublicLandingRoute><Suspense fallback={<div className="p-8 text-center">جاري التحميل...</div>}><LandingPage /></Suspense></PublicLandingRoute>} />
+          
+          <Route element={<MainLayout />}>
             <Route
-              path="dashboard"
+              path="/dashboard"
               element={
                 <ProtectedRoute>
                   <Suspense fallback={<div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-600" /></div>}>
@@ -106,22 +127,23 @@ function App() {
                 </ProtectedRoute>
               }
             />
-            <Route path="tasks" element={<ProtectedRoute><Suspense fallback={<div className="p-8 text-center">جاري التحميل...</div>}><Tasks /></Suspense></ProtectedRoute>} />
-            <Route path="manage/tasks" element={<ProtectedRoute><Suspense fallback={<div className="p-8 text-center">جاري التحميل...</div>}><ManageTasks /></Suspense></ProtectedRoute>} />
-            <Route path="tasks/:taskId/submit" element={<ProtectedRoute><Suspense fallback={<div className="p-8 text-center">جاري التحميل...</div>}><SubmitTask /></Suspense></ProtectedRoute>} />
-            <Route path="exams" element={<ProtectedRoute><Suspense fallback={<div className="p-8 text-center">جاري التحميل...</div>}><Exams /></Suspense></ProtectedRoute>} />
-            <Route path="exams/:id/take" element={<ProtectedRoute><Suspense fallback={<div className="p-8 text-center">جاري التحميل...</div>}><TakeExam /></Suspense></ProtectedRoute>} />
-            <Route path="exams/:id/results" element={<ProtectedRoute><Suspense fallback={<div className="p-8 text-center">جاري التحميل...</div>}><ExamResults /></Suspense></ProtectedRoute>} />
-            <Route path="manage/exams" element={<ProtectedRoute><Suspense fallback={<div className="p-8 text-center">جاري التحميل...</div>}><ManageExams /></Suspense></ProtectedRoute>} />
-            <Route path="submissions" element={<ProtectedRoute><Suspense fallback={<div className="p-8 text-center">جاري التحميل...</div>}><Submissions /></Suspense></ProtectedRoute>} />
-            <Route path="tajweed" element={<ProtectedRoute><Suspense fallback={<div className="p-8 text-center">جاري التحميل...</div>}><Tajweed /></Suspense></ProtectedRoute>} />
-            <Route path="content" element={<ProtectedRoute><Suspense fallback={<div className="p-8 text-center">جاري التحميل...</div>}><IslamicContent /></Suspense></ProtectedRoute>} />
-            <Route path="messages" element={<ProtectedRoute><Suspense fallback={<div className="p-8 text-center">جاري التحميل...</div>}><Messages /></Suspense></ProtectedRoute>} />
-            <Route path="notifications" element={<ProtectedRoute><Suspense fallback={<div className="p-8 text-center">جاري التحميل...</div>}><Notifications /></Suspense></ProtectedRoute>} />
-            <Route path="sessions" element={<ProtectedRoute><Suspense fallback={<div className="p-8 text-center">جاري التحميل...</div>}><Sessions /></Suspense></ProtectedRoute>} />
-            <Route path="admin/classes" element={<ProtectedRoute><Suspense fallback={<div className="p-8 text-center">جاري التحميل...</div>}><Classes /></Suspense></ProtectedRoute>} />
-            <Route path="students" element={<ProtectedRoute><Suspense fallback={<div className="p-8 text-center">جاري التحميل...</div>}><Students /></Suspense></ProtectedRoute>} />
-            <Route path="reports" element={<ProtectedRoute><Suspense fallback={<div className="p-8 text-center">جاري التحميل...</div>}><Reports /></Suspense></ProtectedRoute>} />
+            <Route path="/tasks" element={<ProtectedRoute><Suspense fallback={<div className="p-8 text-center">جاري التحميل...</div>}><Tasks /></Suspense></ProtectedRoute>} />
+            <Route path="/manage/tasks" element={<ProtectedRoute><Suspense fallback={<div className="p-8 text-center">جاري التحميل...</div>}><ManageTasks /></Suspense></ProtectedRoute>} />
+            <Route path="/tasks/:taskId/submit" element={<ProtectedRoute><Suspense fallback={<div className="p-8 text-center">جاري التحميل...</div>}><SubmitTask /></Suspense></ProtectedRoute>} />
+            <Route path="/exams" element={<ProtectedRoute><Suspense fallback={<div className="p-8 text-center">جاري التحميل...</div>}><Exams /></Suspense></ProtectedRoute>} />
+            <Route path="/exams/:id/take" element={<ProtectedRoute><Suspense fallback={<div className="p-8 text-center">جاري التحميل...</div>}><TakeExam /></Suspense></ProtectedRoute>} />
+            <Route path="/exams/:id/results" element={<ProtectedRoute><Suspense fallback={<div className="p-8 text-center">جاري التحميل...</div>}><ExamResults /></Suspense></ProtectedRoute>} />
+            <Route path="/manage/exams" element={<ProtectedRoute><Suspense fallback={<div className="p-8 text-center">جاري التحميل...</div>}><ManageExams /></Suspense></ProtectedRoute>} />
+            <Route path="/submissions" element={<ProtectedRoute><Suspense fallback={<div className="p-8 text-center">جاري التحميل...</div>}><Submissions /></Suspense></ProtectedRoute>} />
+            <Route path="/tajweed" element={<ProtectedRoute><Suspense fallback={<div className="p-8 text-center">جاري التحميل...</div>}><Tajweed /></Suspense></ProtectedRoute>} />
+            <Route path="/content" element={<ProtectedRoute><Suspense fallback={<div className="p-8 text-center">جاري التحميل...</div>}><IslamicContent /></Suspense></ProtectedRoute>} />
+            <Route path="/messages" element={<ProtectedRoute><Suspense fallback={<div className="p-8 text-center">جاري التحميل...</div>}><Messages /></Suspense></ProtectedRoute>} />
+            <Route path="/notifications" element={<ProtectedRoute><Suspense fallback={<div className="p-8 text-center">جاري التحميل...</div>}><Notifications /></Suspense></ProtectedRoute>} />
+            <Route path="/sessions" element={<ProtectedRoute><Suspense fallback={<div className="p-8 text-center">جاري التحميل...</div>}><Sessions /></Suspense></ProtectedRoute>} />
+            <Route path="/admin/classes" element={<ProtectedRoute><Suspense fallback={<div className="p-8 text-center">جاري التحميل...</div>}><Classes /></Suspense></ProtectedRoute>} />
+            <Route path="/students" element={<ProtectedRoute><Suspense fallback={<div className="p-8 text-center">جاري التحميل...</div>}><Students /></Suspense></ProtectedRoute>} />
+            <Route path="/reports" element={<ProtectedRoute><Suspense fallback={<div className="p-8 text-center">جاري التحميل...</div>}><Reports /></Suspense></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute><Suspense fallback={<div className="p-8 text-center">جاري التحميل...</div>}><Profile /></Suspense></ProtectedRoute>} />
 
             <Route
               path="*"

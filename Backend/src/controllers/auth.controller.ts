@@ -13,6 +13,7 @@ import {
   signAccessToken,
 } from '../utils/security';
 import { writeAuditLog } from '../utils/audit';
+import { sendOTP } from '../utils/mailer';
 
 const PASSWORD_COST = 12;
 const db = prisma as typeof prisma & {
@@ -47,14 +48,21 @@ const forgotPasswordSchema = z.object({
 });
 
 const resetPasswordSchema = z.object({
-  token: z.string().min(20, 'رمز إعادة التعيين غير صالح'),
+  email: z.string().trim().toLowerCase().email('البريد الإلكتروني غير صالح'),
+  token: z.string().length(6, 'رمز التحقق يجب أن يكون 6 أرقام'),
   password: z.string().min(8, 'كلمة المرور يجب أن تكون 8 أحرف على الأقل'),
 });
 
 const updateProfileSchema = z.object({
   fullName: z.string().trim().min(2).max(100).optional(),
   phone: z.string().trim().max(20).optional().nullable(),
-  avatarUrl: z.string().url().optional().nullable(),
+  avatarUrl: z.string().optional().nullable(),
+  bio: z.string().optional().nullable(),
+});
+
+const updatePasswordSchema = z.object({
+  oldPassword: z.string().min(1, 'كلمة المرور القديمة مطلوبة'),
+  newPassword: z.string().min(8, 'كلمة المرور الجديدة يجب أن تكون 8 أحرف على الأقل'),
 });
 
 const userPublicSelect = {
@@ -96,7 +104,7 @@ async function issueSession(
   req: Request,
   res: Response,
   user: { id: string; email: string; role: Role }
-): Promise<void> {
+): Promise<string> {
   const refreshToken = createOpaqueToken();
   const accessToken = signAccessToken({
     sub: user.id,
@@ -114,6 +122,7 @@ async function issueSession(
   });
 
   setAuthCookies(res, accessToken, refreshToken);
+  return accessToken;
 }
 
 export const register = async (req: Request, res: Response): Promise<void> => {
@@ -152,10 +161,10 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       return createdUser;
     });
 
-    await issueSession(req, res, user);
+    const token = await issueSession(req, res, user);
     await writeAuditLog(req, 'auth.register', { userId: user.id, entity: 'User', entityId: user.id });
 
-    sendSuccess(res, { user }, 'User registered successfully', 201);
+    sendSuccess(res, { user, token }, 'User registered successfully', 201);
   } catch (error) {
     if (error instanceof z.ZodError) {
       sendError(res, 400, 'Validation failed', zodToFieldErrors(error));
@@ -180,11 +189,11 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    await issueSession(req, res, user);
+    const token = await issueSession(req, res, user);
     await writeAuditLog(req, 'auth.login', { userId: user.id, entity: 'User', entityId: user.id });
 
     const { passwordHash: _passwordHash, isActive: _isActive, ...publicUser } = user;
-    sendSuccess(res, { user: publicUser }, 'Login successful');
+    sendSuccess(res, { user: publicUser, token }, 'Login successful');
   } catch (error) {
     if (error instanceof z.ZodError) {
       sendError(res, 400, 'Validation failed', zodToFieldErrors(error));
@@ -224,9 +233,9 @@ export const refreshToken = async (req: Request, res: Response): Promise<void> =
       where: { id: existingToken.id },
       data: { revokedAt: new Date() },
     });
-    await issueSession(req, res, existingToken.user);
+    const newToken = await issueSession(req, res, existingToken.user);
 
-    sendSuccess(res, null, 'Token refreshed successfully');
+    sendSuccess(res, { token: newToken }, 'Token refreshed successfully');
   } catch (error) {
     console.error('Refresh token error:', error);
     clearAuthCookies(res);
@@ -265,23 +274,30 @@ export const forgotPassword = async (req: Request, res: Response): Promise<void>
       select: { id: true, email: true, isActive: true },
     });
 
-    let resetToken: string | undefined;
+    let otp: string | undefined;
     if (user?.isActive) {
-      resetToken = createOpaqueToken();
+      otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6 digit OTP
       await db.passwordResetToken.create({
         data: {
           userId: user.id,
-          tokenHash: hashToken(resetToken),
+          tokenHash: hashToken(otp),
           expiresAt: passwordResetExpiry(),
         },
       });
       await writeAuditLog(req, 'auth.forgot_password', { userId: user.id });
+      
+      // Try to send email
+      try {
+        await sendOTP(email, otp);
+      } catch (e) {
+        console.error("Mail server not configured yet, OTP is:", otp);
+      }
     }
 
     sendSuccess(
       res,
-      process.env.NODE_ENV === 'production' ? null : { resetToken },
-      'If the email exists, password reset instructions have been sent'
+      process.env.NODE_ENV === 'production' ? null : { resetToken: otp },
+      'إذا كان البريد مسجلاً، فقد تم إرسال رمز التحقق إليه'
     );
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -295,7 +311,20 @@ export const forgotPassword = async (req: Request, res: Response): Promise<void>
 
 export const resetPassword = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { token, password } = resetPasswordSchema.parse(req.body);
+    const { email, token, password } = resetPasswordSchema.parse(req.body);
+    
+    // First find the user by email to get their ID
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: { id: true, isActive: true }
+    });
+
+    if (!user || !user.isActive) {
+      sendError(res, 400, 'الرمز غير صالح أو منتهي الصلاحية');
+      return;
+    }
+
+    // Now find the valid reset token for this user
     const storedToken = await db.passwordResetToken.findUnique({
       where: { tokenHash: hashToken(token) },
       include: { user: { select: { id: true, isActive: true } } },
@@ -303,11 +332,11 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
 
     if (
       !storedToken ||
+      storedToken.userId !== user.id ||
       storedToken.usedAt ||
-      storedToken.expiresAt <= new Date() ||
-      !storedToken.user.isActive
+      storedToken.expiresAt <= new Date()
     ) {
-      sendError(res, 400, 'Invalid or expired reset token');
+      sendError(res, 400, 'الرمز غير صالح أو منتهي الصلاحية');
       return;
     }
 
@@ -394,6 +423,46 @@ export const updateProfile = async (req: AuthRequest, res: Response): Promise<vo
       return;
     }
     console.error('Update profile error:', error);
+    sendError(res, 500, 'Internal server error');
+  }
+};
+
+export const updatePassword = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.id;
+    const { oldPassword, newPassword } = updatePasswordSchema.parse(req.body);
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { passwordHash: true },
+    });
+
+    if (!user) {
+      sendError(res, 404, 'User not found');
+      return;
+    }
+
+    const passwordMatches = await bcrypt.compare(oldPassword, user.passwordHash);
+    if (!passwordMatches) {
+      sendError(res, 400, 'كلمة المرور القديمة غير صحيحة');
+      return;
+    }
+
+    const newPasswordHash = await bcrypt.hash(newPassword, PASSWORD_COST);
+    await prisma.user.update({
+      where: { id: userId },
+      data: { passwordHash: newPasswordHash },
+    });
+
+    await writeAuditLog(req, 'auth.update_password', { userId, entity: 'User', entityId: userId });
+
+    sendSuccess(res, null, 'تم تغيير كلمة المرور بنجاح');
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      sendError(res, 400, 'Validation failed', zodToFieldErrors(error));
+      return;
+    }
+    console.error('Update password error:', error);
     sendError(res, 500, 'Internal server error');
   }
 };
