@@ -91,7 +91,7 @@ export default function TakeExamScreen() {
 
   if (examLoading || startMutation.isPending) {
     return (
-      <View className="flex-1 items-center justify-center bg-white">
+      <View className="flex-1 items-center justify-center bg-white dark:bg-gray-900">
         <ActivityIndicator size="large" color="#16a34a" />
       </View>
     );
@@ -99,7 +99,7 @@ export default function TakeExamScreen() {
 
   if (startMutation.isError) {
     return (
-      <View className="flex-1 bg-white p-8 items-center justify-center">
+      <View className="flex-1 bg-white dark:bg-gray-900 p-8 items-center justify-center">
         <Ionicons name="alert-circle" size={48} color="#ef4444" />
         <Text className="mt-4 text-lg font-black text-red-700 text-center">لا يمكن بدء الاختبار</Text>
         <Text className="mt-2 text-sm text-red-600 font-bold text-center">
@@ -116,11 +116,11 @@ export default function TakeExamScreen() {
   const exam = examData;
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <View className="flex-1 bg-gray-50 dark:bg-gray-950">
       {/* Sticky header */}
-      <View className="bg-white border-b border-gray-200 px-4 py-3 flex-row items-center justify-between">
+      <View className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex-row items-center justify-between">
         <View className="flex-1">
-          <Text className="text-lg font-black text-gray-900" numberOfLines={1}>{exam?.title}</Text>
+          <Text className="text-lg font-black text-gray-900 dark:text-white" numberOfLines={1}>{exam?.title}</Text>
           <Text className="text-xs font-bold text-gray-500 mt-0.5">
             إجابة على {Object.keys(answers).length} من {questions.length} سؤال
           </Text>
@@ -129,7 +129,7 @@ export default function TakeExamScreen() {
           {timeLeft !== null && (
             <View className={`flex-row items-center px-3 py-1.5 rounded-lg ${timeLeft < 60 ? 'bg-red-100' : 'bg-gray-100'}`} style={{ gap: 4 }}>
               <Ionicons name="time" size={16} color={timeLeft < 60 ? '#dc2626' : '#4b5563'} />
-              <Text className={`font-black font-mono text-base ${timeLeft < 60 ? 'text-red-700' : 'text-gray-700'}`}>
+              <Text className={`font-black font-mono text-base ${timeLeft < 60 ? 'text-red-700' : 'text-gray-700 dark:text-gray-300'}`}>
                 {formatTime(timeLeft)}
               </Text>
             </View>
@@ -155,9 +155,9 @@ export default function TakeExamScreen() {
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
         <View style={{ gap: 16 }}>
           {questions.map((q, idx) => (
-            <View key={q.id} className="bg-white rounded-3xl border border-gray-200 p-5 shadow-sm">
+            <View key={q.id} className="bg-white dark:bg-gray-900 rounded-3xl border border-gray-200 dark:border-gray-700 p-5 shadow-sm">
               <View className="flex-row justify-between items-start mb-4">
-                <Text className="text-base font-bold text-gray-900 flex-1 leading-relaxed">
+                <Text className="text-base font-bold text-gray-900 dark:text-white flex-1 leading-relaxed">
                   <Text className="text-emerald-600">{idx + 1}. </Text>
                   {q.questionText}
                 </Text>
@@ -173,7 +173,7 @@ export default function TakeExamScreen() {
                     key={oIdx}
                     onPress={() => setAnswers({ ...answers, [q.id]: opt })}
                     className={`flex-row items-center p-3 rounded-xl border-2 ${
-                      answers[q.id] === opt ? 'border-emerald-500 bg-emerald-50' : 'border-gray-100'
+                      answers[q.id] === opt ? 'border-emerald-500 bg-emerald-50' : 'border-gray-100 dark:border-gray-800'
                     }`}
                     style={{ gap: 10 }}
                   >
@@ -182,7 +182,7 @@ export default function TakeExamScreen() {
                     }`}>
                       {answers[q.id] === opt && <Ionicons name="checkmark" size={14} color="#fff" />}
                     </View>
-                    <Text className="font-medium text-gray-700 flex-1">{opt}</Text>
+                    <Text className="font-medium text-gray-700 dark:text-gray-300 flex-1">{opt}</Text>
                   </TouchableOpacity>
                 ))}
 
@@ -192,7 +192,7 @@ export default function TakeExamScreen() {
                     key={opt}
                     onPress={() => setAnswers({ ...answers, [q.id]: opt })}
                     className={`flex-row items-center p-3 rounded-xl border-2 ${
-                      answers[q.id] === opt ? 'border-emerald-500 bg-emerald-50' : 'border-gray-100'
+                      answers[q.id] === opt ? 'border-emerald-500 bg-emerald-50' : 'border-gray-100 dark:border-gray-800'
                     }`}
                     style={{ gap: 10 }}
                   >
@@ -201,7 +201,7 @@ export default function TakeExamScreen() {
                     }`}>
                       {answers[q.id] === opt && <Ionicons name="checkmark" size={14} color="#fff" />}
                     </View>
-                    <Text className="font-medium text-gray-700">{opt}</Text>
+                    <Text className="font-medium text-gray-700 dark:text-gray-300">{opt}</Text>
                   </TouchableOpacity>
                 ))}
 
@@ -213,7 +213,7 @@ export default function TakeExamScreen() {
                     placeholder="اكتب إجابتك هنا..."
                     multiline
                     numberOfLines={3}
-                    className="bg-gray-50 border-2 border-gray-100 rounded-xl p-4 font-medium"
+                    className="bg-gray-50 dark:bg-gray-950 border-2 border-gray-100 dark:border-gray-800 rounded-xl p-4 font-medium"
                     style={{ minHeight: 80, textAlignVertical: 'top' }}
                   />
                 )}

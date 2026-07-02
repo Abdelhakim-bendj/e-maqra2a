@@ -22,7 +22,7 @@ interface AuthState {
   isLoading: boolean;
   setUser: (user: User | null) => void;
   setLoading: (isLoading: boolean) => void;
-  logout: () => void;
+  logout: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -31,5 +31,10 @@ export const useAuthStore = create<AuthState>((set) => ({
   isLoading: true,
   setUser: (user) => set({ user, isAuthenticated: Boolean(user), isLoading: false }),
   setLoading: (isLoading) => set({ isLoading }),
-  logout: () => set({ user: null, isAuthenticated: false, isLoading: false }),
+  logout: async () => {
+    // Lazy import to avoid circular dependency
+    const { supabase } = await import('../lib/supabase');
+    await supabase.auth.signOut();
+    set({ user: null, isAuthenticated: false, isLoading: false });
+  },
 }));

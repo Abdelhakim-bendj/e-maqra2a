@@ -10,10 +10,10 @@ app.listen(PORT, () => {
     console.log(`\n======================================`);
     console.log(`🧪 TEST CREDENTIALS (Development Only)`);
     console.log(`======================================`);
-    console.log(`Admin:   admin@emaqra2a.com`);
+    console.log(`Admin:   bendjelloulabedelhakim@gmail.com`);
     console.log(`Teacher: teacher1@emaqra2a.com (has students 1-10)`);
     console.log(`Student: student1@emaqra2a.com`);
-    console.log(`Password for all: 123456`);
+    console.log(`Password for all: Password123!`);
     console.log(`======================================\n`);
   }
 });

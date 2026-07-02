@@ -43,11 +43,11 @@ export default function TasksScreen() {
   ];
 
   return (
-    <ScrollView className="flex-1 bg-gray-50" refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}>
+    <ScrollView className="flex-1 bg-gray-50 dark:bg-gray-950" refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}>
       {/* Header */}
       <View className="px-4 pt-4 pb-2 flex-row items-center justify-between">
         <View>
-          <Text className="text-2xl font-bold text-gray-900">المهام اليومية</Text>
+          <Text className="text-2xl font-bold text-gray-900 dark:text-white">المهام اليومية</Text>
           <Text className="text-sm text-gray-500 mt-1">تابع مهام الحفظ والمراجعة</Text>
         </View>
         {user?.role === 'TEACHER' && (
@@ -61,7 +61,7 @@ export default function TasksScreen() {
       <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-4 py-2" contentContainerStyle={{ gap: 8 }}>
         {filters.map((f) => (
           <TouchableOpacity key={f.value} onPress={() => setFilter(f.value)}
-            className={`px-4 py-2 rounded-xl border ${filter === f.value ? 'border-primary-600 bg-primary-50' : 'border-gray-200 bg-white'}`}>
+            className={`px-4 py-2 rounded-xl border ${filter === f.value ? 'border-primary-600 bg-primary-50' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900'}`}>
             <Text className={`text-sm font-bold ${filter === f.value ? 'text-primary-700' : 'text-gray-500'}`}>{f.label}</Text>
           </TouchableOpacity>
         ))}
@@ -83,7 +83,7 @@ export default function TasksScreen() {
             const isOverdue = new Date(task.dueDate) < new Date() && task.status !== 'COMPLETED';
 
             return (
-              <View key={task.id} className={`bg-white rounded-2xl p-4 border ${isOverdue ? 'border-red-200' : 'border-gray-100'} shadow-sm`}>
+              <View key={task.id} className={`bg-white dark:bg-gray-900 rounded-2xl p-4 border ${isOverdue ? 'border-red-200' : 'border-gray-100 dark:border-gray-800'} shadow-sm`}>
                 <View className="flex-row items-center justify-between mb-3">
                   <Text className="text-xs font-bold bg-primary-50 text-primary-700 px-3 py-1 rounded-full">{taskTypeLabel[task.taskType]}</Text>
                   <Text className={`text-xs font-bold px-3 py-1 rounded-full ${cfg.color}`}>{cfg.label}</Text>
@@ -94,12 +94,12 @@ export default function TasksScreen() {
                     <Text className="text-2xl">📖</Text>
                   </View>
                   <View className="flex-1">
-                    <Text className="text-lg font-bold text-gray-900">سورة {surahName}</Text>
+                    <Text className="text-lg font-bold text-gray-900 dark:text-white">سورة {surahName}</Text>
                     <Text className="text-sm text-gray-500">الآيات {task.ayahStart} – {task.ayahEnd}</Text>
                   </View>
                 </View>
 
-                <View className="bg-gray-50 rounded-xl p-3 mb-3">
+                <View className="bg-gray-50 dark:bg-gray-950 rounded-xl p-3 mb-3">
                   <Text className="text-sm text-gray-500">📅 موعد التسليم: {new Date(task.dueDate).toLocaleDateString('ar-MA')}</Text>
                 </View>
 
@@ -114,13 +114,13 @@ export default function TasksScreen() {
                     </TouchableOpacity>
                     <TouchableOpacity onPress={() => router.push({ pathname: '/(modals)/submit-task', params: { taskId: task.id } })}
                       className="bg-gray-100 px-4 py-3 rounded-xl items-center">
-                      <Text className="text-gray-700 font-bold">تسليم</Text>
+                      <Text className="text-gray-700 dark:text-gray-300 font-bold">تسليم</Text>
                     </TouchableOpacity>
                   </View>
                 )}
                 {user?.role !== 'STUDENT' && (
-                  <View className="flex-row items-center justify-between bg-gray-50 p-3 rounded-xl">
-                    <Text className="text-sm font-bold text-gray-700">{task.student.fullName}</Text>
+                  <View className="flex-row items-center justify-between bg-gray-50 dark:bg-gray-950 p-3 rounded-xl">
+                    <Text className="text-sm font-bold text-gray-700 dark:text-gray-300">{task.student.fullName}</Text>
                     <View className="flex-row gap-2">
                       <TouchableOpacity onPress={() => router.push({ pathname: '/(modals)/manage-task', params: { editTask: JSON.stringify(task) } })}
                         className="bg-primary-50 px-3 py-1.5 rounded-lg">

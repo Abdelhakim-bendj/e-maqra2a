@@ -48,7 +48,7 @@ export default function SessionsScreen() {
 
   if (isLoading) {
     return (
-      <View className="flex-1 items-center justify-center bg-white">
+      <View className="flex-1 items-center justify-center bg-white dark:bg-gray-900">
         <ActivityIndicator size="large" color="#16a34a" />
       </View>
     );
@@ -56,7 +56,7 @@ export default function SessionsScreen() {
 
   return (
     <ScrollView
-      className="flex-1 bg-gray-50"
+      className="flex-1 bg-gray-50 dark:bg-gray-950"
       contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#16a34a" />}
     >
@@ -77,7 +77,7 @@ export default function SessionsScreen() {
           const participantPercent = Math.min(100, Math.round((session._count.attendances / session.maxParticipants) * 100));
 
           return (
-            <View key={session.id} className="bg-white rounded-3xl border border-gray-100 mb-4 shadow-sm overflow-hidden">
+            <View key={session.id} className="bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 mb-4 shadow-sm overflow-hidden">
               {/* Header: Teacher & Status */}
               <View className="flex-row items-center justify-between p-4 pb-3 border-b border-gray-50">
                 <View className="flex-row items-center" style={{ gap: 10 }}>
@@ -85,7 +85,7 @@ export default function SessionsScreen() {
                     <Text className="text-lg font-black text-emerald-700">{session.teacher.fullName.charAt(0)}</Text>
                   </View>
                   <View>
-                    <Text className="text-sm font-bold text-gray-900">{session.teacher.fullName}</Text>
+                    <Text className="text-sm font-bold text-gray-900 dark:text-white">{session.teacher.fullName}</Text>
                     <Text className="text-xs font-bold text-gray-400">معلم الحلقة</Text>
                   </View>
                 </View>
@@ -97,7 +97,7 @@ export default function SessionsScreen() {
               {/* Body: Title, Type, Time */}
               <View className="p-4 pb-2">
                 <View className="flex-row items-start justify-between mb-2">
-                  <Text className="flex-1 text-lg font-black text-gray-900 leading-tight">{session.title}</Text>
+                  <Text className="flex-1 text-lg font-black text-gray-900 dark:text-white leading-tight">{session.title}</Text>
                   <View className="ml-3 px-2.5 py-1 rounded-xl bg-blue-50 border border-blue-100">
                     <Text className="text-xs font-black text-blue-600">{sessionTypeLabel[session.sessionType] || session.sessionType}</Text>
                   </View>
@@ -107,18 +107,18 @@ export default function SessionsScreen() {
                   <Text className="text-sm text-gray-500 mb-4 leading-relaxed" numberOfLines={2}>{session.description}</Text>
                 )}
 
-                <View className="flex-row items-center bg-gray-50 p-3 rounded-2xl mb-4" style={{ gap: 16 }}>
+                <View className="flex-row items-center bg-gray-50 dark:bg-gray-950 p-3 rounded-2xl mb-4" style={{ gap: 16 }}>
                   <View className="flex-row items-center" style={{ gap: 6 }}>
                     <Ionicons name="calendar" size={18} color="#047857" />
-                    <Text className="text-sm font-bold text-gray-700">{dateStr}</Text>
+                    <Text className="text-sm font-bold text-gray-700 dark:text-gray-300">{dateStr}</Text>
                   </View>
                   <View className="flex-row items-center" style={{ gap: 6 }}>
                     <Ionicons name="time" size={18} color="#047857" />
-                    <Text className="text-sm font-bold text-gray-700">{timeStr}</Text>
+                    <Text className="text-sm font-bold text-gray-700 dark:text-gray-300">{timeStr}</Text>
                   </View>
                   <View className="flex-row items-center" style={{ gap: 6 }}>
                     <Ionicons name="hourglass" size={18} color="#047857" />
-                    <Text className="text-sm font-bold text-gray-700">{session.durationMinutes} د</Text>
+                    <Text className="text-sm font-bold text-gray-700 dark:text-gray-300">{session.durationMinutes} د</Text>
                   </View>
                 </View>
 
@@ -126,7 +126,7 @@ export default function SessionsScreen() {
                 <View className="mb-4">
                   <View className="flex-row justify-between items-center mb-1.5">
                     <Text className="text-xs font-bold text-gray-500">المقاعد المشغولة</Text>
-                    <Text className="text-xs font-black text-gray-700">{session._count.attendances} / {session.maxParticipants}</Text>
+                    <Text className="text-xs font-black text-gray-700 dark:text-gray-300">{session._count.attendances} / {session.maxParticipants}</Text>
                   </View>
                   <View className="h-2 bg-gray-100 rounded-full overflow-hidden">
                     <View className="h-full rounded-full" style={{ width: `${participantPercent}%`, backgroundColor: participantPercent > 90 ? '#ef4444' : '#0ea5e9' }} />

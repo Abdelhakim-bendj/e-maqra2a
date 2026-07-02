@@ -6,9 +6,8 @@ import {
 } from 'lucide-react';
 import { apiCall } from '../../services/api';
 import { useAuthStore } from '../../store/authStore';
-import type { UserRole } from '../../store/authStore';
+import type { UserRole, User } from '../../store/authStore';
 import { useState, useEffect } from 'react';
-import { useMutation } from '@tanstack/react-query';
 import { useLangStore } from '../../store/langStore';
 import logoUrl from '../../assets/logo.png';
 
@@ -38,7 +37,7 @@ const navItems: NavItem[] = [
 ];
 
 export const MainLayout = () => {
-  const { user, logout } = useAuthStore();
+  const { user, logout, setUser } = useAuthStore();
   const { t } = useLangStore();
   const location = useLocation();
   const navigate = useNavigate();
@@ -48,6 +47,26 @@ export const MainLayout = () => {
     return localStorage.getItem('theme') === 'dark' ||
       (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
   });
+
+  const isStudentRestricted = user?.role === 'STUDENT' && user.studentProfile?.teacherStatus !== 'ACCEPTED';
+
+  // Poll for profile updates if the student is restricted
+  useEffect(() => {
+    if (!isStudentRestricted) return;
+    
+    const interval = setInterval(async () => {
+      try {
+        const data = await apiCall<{ user: User }>('/auth/profile', { method: 'GET' }, false);
+        if (data && data.user) {
+          setUser(data.user);
+        }
+      } catch (err) {
+        // Ignore errors during polling
+      }
+    }, 10000); // Check every 10 seconds
+
+    return () => clearInterval(interval);
+  }, [isStudentRestricted, setUser]);
 
   useEffect(() => {
     if (isDark) {
@@ -71,7 +90,6 @@ export const MainLayout = () => {
     mutationFn: (teacherId: string) => apiCall('/users/select-teacher', { method: 'POST', body: JSON.stringify({ teacherId }) }),
     onSuccess: () => {
       alert('تم إرسال طلبك للمعلم بنجاح! يرجى الانتظار حتى يتم القبول.');
-      setShowTeacherModal(false);
       window.location.reload(); // Quick refresh to update restricted state
     },
     onError: (err: any) => alert(err.message),
@@ -113,7 +131,6 @@ export const MainLayout = () => {
 
   let visibleNav = navItems.filter((item) => user && item.roles.includes(user.role));
 
-  const isStudentRestricted = user?.role === 'STUDENT' && user.studentProfile?.teacherStatus !== 'ACCEPTED';
   if (isStudentRestricted) {
     visibleNav = visibleNav.filter(item => item.to === '/messages' || item.to === '/profile' || item.to === '/notifications');
   }

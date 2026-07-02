@@ -15,6 +15,7 @@ import {
   TrendingUp,
   Users,
   Zap,
+} from 'lucide-react';
 import { apiCall } from '../../services/api';
 import { useAuthStore } from '../../store/authStore';
 import { useLangStore } from '../../store/langStore';

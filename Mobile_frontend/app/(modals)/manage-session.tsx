@@ -46,28 +46,28 @@ export default function ManageSessionScreen() {
   };
 
   return (
-    <ScrollView className="flex-1 bg-gray-50" contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
+    <ScrollView className="flex-1 bg-gray-50 dark:bg-gray-950" contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
       {/* Title */}
       <View className="mb-4">
-        <Text className="mb-2 text-sm font-black text-gray-900">عنوان الجلسة</Text>
+        <Text className="mb-2 text-sm font-black text-gray-900 dark:text-white">عنوان الجلسة</Text>
         <TextInput
           value={form.title}
           onChangeText={(t) => setForm({ ...form, title: t })}
           placeholder="أدخل عنوان الجلسة"
-          className="bg-white border border-gray-200 rounded-xl p-3 font-bold"
+          className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-3 font-bold"
         />
       </View>
 
       {/* Session Type */}
       <View className="mb-4">
-        <Text className="mb-2 text-sm font-black text-gray-900">نوع الجلسة</Text>
+        <Text className="mb-2 text-sm font-black text-gray-900 dark:text-white">نوع الجلسة</Text>
         <View className="flex-row" style={{ gap: 8 }}>
           {(['MEMORIZATION', 'TAJWEED', 'EDUCATIONAL'] as const).map(t => (
             <TouchableOpacity
               key={t}
               onPress={() => setForm({ ...form, sessionType: t })}
               className={`flex-1 py-3 rounded-xl border-2 items-center ${
-                form.sessionType === t ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 bg-white'
+                form.sessionType === t ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900'
               }`}
             >
               <Text className={`font-bold text-xs ${form.sessionType === t ? 'text-emerald-700' : 'text-gray-500'}`}>
@@ -80,12 +80,12 @@ export default function ManageSessionScreen() {
 
       {/* Scheduled At */}
       <View className="mb-4">
-        <Text className="mb-2 text-sm font-black text-gray-900">تاريخ ووقت البدء</Text>
+        <Text className="mb-2 text-sm font-black text-gray-900 dark:text-white">تاريخ ووقت البدء</Text>
         <TouchableOpacity
           onPress={() => setShowPicker(true)}
-          className="bg-white border border-gray-200 rounded-xl p-3 flex-row items-center justify-between"
+          className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-3 flex-row items-center justify-between"
         >
-          <Text className="font-bold text-gray-700">
+          <Text className="font-bold text-gray-700 dark:text-gray-300">
             {form.scheduledAt.toISOString().slice(0, 10)} {form.scheduledAt.getHours().toString().padStart(2, '0')}:{form.scheduledAt.getMinutes().toString().padStart(2, '0')}
           </Text>
           <Ionicons name="calendar-outline" size={20} color="#059669" />
@@ -103,47 +103,47 @@ export default function ManageSessionScreen() {
       {/* Duration and Participants */}
       <View className="flex-row mb-4" style={{ gap: 12 }}>
         <View className="flex-1">
-          <Text className="mb-2 text-sm font-black text-gray-900">المدة (دقائق)</Text>
+          <Text className="mb-2 text-sm font-black text-gray-900 dark:text-white">المدة (دقائق)</Text>
           <TextInput
             value={String(form.durationMinutes)}
             onChangeText={(t) => setForm({ ...form, durationMinutes: parseInt(t) || 45 })}
             keyboardType="numeric"
-            className="bg-white border border-gray-200 rounded-xl p-3 text-center font-bold"
+            className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-3 text-center font-bold"
           />
         </View>
         <View className="flex-1">
-          <Text className="mb-2 text-sm font-black text-gray-900">الحد الأقصى للمشاركين</Text>
+          <Text className="mb-2 text-sm font-black text-gray-900 dark:text-white">الحد الأقصى للمشاركين</Text>
           <TextInput
             value={String(form.maxParticipants)}
             onChangeText={(t) => setForm({ ...form, maxParticipants: parseInt(t) || 20 })}
             keyboardType="numeric"
-            className="bg-white border border-gray-200 rounded-xl p-3 text-center font-bold"
+            className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-3 text-center font-bold"
           />
         </View>
       </View>
 
       {/* Meeting URL */}
       <View className="mb-4">
-        <Text className="mb-2 text-sm font-black text-gray-900">رابط الاجتماع (اختياري)</Text>
+        <Text className="mb-2 text-sm font-black text-gray-900 dark:text-white">رابط الاجتماع (اختياري)</Text>
         <TextInput
           value={form.meetingUrl}
           onChangeText={(t) => setForm({ ...form, meetingUrl: t })}
           placeholder="https://meet.google.com/..."
-          className="bg-white border border-gray-200 rounded-xl p-3 font-medium text-left"
+          className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-3 font-medium text-left"
           style={{ textAlign: 'left' }}
         />
       </View>
 
       {/* Description */}
       <View className="mb-6">
-        <Text className="mb-2 text-sm font-black text-gray-900">الوصف (اختياري)</Text>
+        <Text className="mb-2 text-sm font-black text-gray-900 dark:text-white">الوصف (اختياري)</Text>
         <TextInput
           value={form.description}
           onChangeText={(t) => setForm({ ...form, description: t })}
           multiline
           numberOfLines={3}
           placeholder="تفاصيل الجلسة..."
-          className="bg-white border border-gray-200 rounded-xl p-3 font-medium"
+          className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-3 font-medium"
           style={{ minHeight: 80, textAlignVertical: 'top' }}
         />
       </View>

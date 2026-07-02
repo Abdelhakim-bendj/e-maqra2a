@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, Image, TouchableOpacity, SafeAreaView, Dimensions, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, Image, TouchableOpacity, SafeAreaView, Dimensions, StyleSheet, Animated } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
@@ -7,6 +7,35 @@ import { StatusBar } from 'expo-status-bar';
 const { width, height } = Dimensions.get('window');
 
 export default function LandingScreen() {
+  const [showSplash, setShowSplash] = useState(true);
+  const fadeAnim = useState(new Animated.Value(1))[0];
+
+  useEffect(() => {
+    setTimeout(() => {
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 800,
+        useNativeDriver: true,
+      }).start(() => setShowSplash(false));
+    }, 2000);
+  }, []);
+
+  if (showSplash) {
+    return (
+      <View style={{ flex: 1, backgroundColor: '#047857', justifyContent: 'center', alignItems: 'center' }}>
+        <StatusBar style="light" />
+        <Animated.View style={{ opacity: fadeAnim, alignItems: 'center' }}>
+          <Image 
+            source={require('../../assets/images/logo.png')} 
+            style={{ width: 200, height: 200, tintColor: '#fff' }}
+            resizeMode="contain"
+          />
+          <Text style={{ fontSize: 32, fontWeight: '900', color: '#fff', marginTop: 24 }}>E-Maqra2a</Text>
+        </Animated.View>
+      </View>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />

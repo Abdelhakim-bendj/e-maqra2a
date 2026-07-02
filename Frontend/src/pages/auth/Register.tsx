@@ -5,6 +5,7 @@ import { ArrowLeft, GraduationCap, Lock, Mail, UserRound, Users } from 'lucide-r
 import { ApiError, apiCall } from '../../services/api';
 import { useAuthStore } from '../../store/authStore';
 import type { User, UserRole } from '../../store/authStore';
+import { supabase } from '../../lib/supabase';
 import logoUrl from '../../assets/logo.png';
 
 
@@ -32,14 +33,60 @@ export const Register = () => {
     setIsLoading(true);
 
     try {
-      const data = await apiCall<{ user: User }>('/auth/register', {
-        method: 'POST',
-        body: JSON.stringify(formData),
+      // 1. Sign up with Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            full_name: formData.fullName,
+            role: formData.role,
+          },
+        },
       });
-      setUser(data.user);
+
+      if (authError) {
+        if (authError.message.includes('User already registered')) {
+            throw new Error('البريد الإلكتروني مسجل بالفعل.');
+        }
+        if (authError.message.toLowerCase().includes('rate limit')) {
+            throw new Error('تم تجاوز الحد المسموح به لرسائل البريد الإلكتروني. يرجى الانتظار لمدة ساعة أو تعطيل تأكيد البريد من لوحة تحكم Supabase.');
+        }
+        throw new Error(authError.message);
+      }
+
+      if (!authData.session) {
+        throw new Error('فشل التسجيل. قد تحتاج إلى تأكيد بريدك الإلكتروني. تحقق من بريدك ثم سجل الدخول.');
+      }
+
+      // 2. Sync profile with our backend
+      await apiCall<{ synced: boolean }>('/auth/sync-profile', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${authData.session.access_token}`,
+        },
+        body: JSON.stringify({
+          fullName: formData.fullName,
+          role: formData.role,
+        }),
+      });
+
+      // 3. Fetch full profile
+      const profileData = await apiCall<{ user: User }>('/auth/profile', {
+        headers: {
+          Authorization: `Bearer ${authData.session.access_token}`,
+        },
+      });
+
+      setUser(profileData.user);
       navigate('/dashboard', { replace: true });
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'حدث خطأ أثناء التسجيل. حاول مرة أخرى.');
+      console.error('[REGISTER ERROR] Full error object:', err);
+      if (err instanceof Error) {
+        console.error('[REGISTER ERROR] Message:', err.message);
+        console.error('[REGISTER ERROR] Stack:', err.stack);
+      }
+        setError(err instanceof Error ? err.message : (err as any)?.message || 'حدث خطأ أثناء التسجيل. حاول مرة أخرى.');
     } finally {
       setIsLoading(false);
     }

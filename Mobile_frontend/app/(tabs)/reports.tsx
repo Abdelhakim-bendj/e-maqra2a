@@ -38,7 +38,7 @@ export default function ReportsScreen() {
 
   if (user?.role !== 'ADMIN') {
     return (
-      <View className="flex-1 items-center justify-center bg-white p-8">
+      <View className="flex-1 items-center justify-center bg-white dark:bg-gray-900 p-8">
         <Ionicons name="bar-chart-outline" size={48} color="#d1d5db" />
         <Text className="mt-4 text-gray-500 text-center font-bold">
           التقارير التفصيلية متاحة للمدراء حالياً. جاري العمل على تقارير المعلمين.
@@ -49,27 +49,27 @@ export default function ReportsScreen() {
 
   if (isLoading) {
     return (
-      <View className="flex-1 items-center justify-center bg-white">
+      <View className="flex-1 items-center justify-center bg-white dark:bg-gray-900">
         <ActivityIndicator size="large" color="#16a34a" />
       </View>
     );
   }
 
   return (
-    <ScrollView className="flex-1 bg-gray-50" contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
-      <Text className="text-xl font-black text-gray-900 mb-4">التقارير والإحصائيات</Text>
+    <ScrollView className="flex-1 bg-gray-50 dark:bg-gray-950" contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
+      <Text className="text-xl font-black text-gray-900 dark:text-white mb-4">التقارير والإحصائيات</Text>
 
       <View className="flex-row flex-wrap" style={{ gap: 12 }}>
         {statCards.map((card) => {
           const value = getNestedValue(report, card.key);
           return (
-            <View key={card.key} className="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm flex-row items-center" style={{ width: '48%', gap: 12 }}>
+            <View key={card.key} className="bg-white dark:bg-gray-900 p-4 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm flex-row items-center" style={{ width: '48%', gap: 12 }}>
               <View className="h-11 w-11 rounded-xl items-center justify-center" style={{ backgroundColor: card.bg }}>
                 <Ionicons name={card.icon} size={22} color={card.color} />
               </View>
               <View className="flex-1">
                 <Text className="text-xs font-bold text-gray-500 mb-0.5">{card.label}</Text>
-                <Text className="text-2xl font-black text-gray-900">
+                <Text className="text-2xl font-black text-gray-900 dark:text-white">
                   {value}{card.suffix || ''}
                 </Text>
               </View>

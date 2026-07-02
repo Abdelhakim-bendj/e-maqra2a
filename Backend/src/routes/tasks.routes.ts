@@ -3,6 +3,7 @@ import { authenticate, authorize } from '../middleware/auth.middleware';
 import {
   listTasks,
   getTask,
+  getTaskStudents,
   createTask,
   createBulkTask,
   updateTaskStatus,
@@ -16,6 +17,7 @@ router.use(authenticate);
 
 router.get('/', listTasks);
 router.get('/:id', getTask);
+router.get('/:id/students', authorize('TEACHER', 'ADMIN'), getTaskStudents);
 router.post('/', authorize('TEACHER', 'ADMIN'), createTask);
 router.post('/bulk', authorize('TEACHER', 'ADMIN'), createBulkTask);
 router.put('/:id', authorize('TEACHER', 'ADMIN'), updateTask);

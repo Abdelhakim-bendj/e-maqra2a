@@ -120,6 +120,44 @@ export const getTask = async (req: AuthRequest, res: Response): Promise<void> =>
   sendSuccess(res, { task }, 'Task loaded');
 };
 
+// GET /api/tasks/:id/students — teacher sees all students for this task and their status
+export const getTaskStudents = async (req: AuthRequest, res: Response): Promise<void> => {
+  const { id: taskId } = req.params;
+  const { role, id: userId } = req.user!;
+
+  const task = await prisma.memorizationTask.findUnique({
+    where: { id: taskId },
+    select: { id: true, teacherId: true, surahNumber: true, ayahStart: true, ayahEnd: true, taskType: true, dueDate: true },
+  });
+
+  if (!task) { sendError(res, 404, 'Task not found'); return; }
+  if (role === 'TEACHER' && task.teacherId !== userId) { sendError(res, 403, 'Access denied'); return; }
+
+  // Find all tasks by same teacher with same surah/ayah range (i.e. bulk-assigned tasks)
+  const relatedTasks = await prisma.memorizationTask.findMany({
+    where: {
+      teacherId: task.teacherId,
+      surahNumber: task.surahNumber,
+      ayahStart: task.ayahStart,
+      ayahEnd: task.ayahEnd,
+      taskType: task.taskType,
+      dueDate: task.dueDate,
+    },
+    select: {
+      id: true,
+      status: true,
+      student: { select: { id: true, fullName: true, avatarUrl: true } },
+      submissions: {
+        select: { id: true, status: true, submittedAt: true },
+        orderBy: { submittedAt: 'desc' },
+        take: 1,
+      },
+    },
+  });
+
+  sendSuccess(res, { students: relatedTasks }, 'Task students loaded');
+};
+
 // POST /api/tasks — teacher creates task for one student
 export const createTask = async (req: AuthRequest, res: Response): Promise<void> => {
   try {

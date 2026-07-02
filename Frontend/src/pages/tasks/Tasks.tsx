@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiCall } from '../../services/api';
 import { useAuthStore } from '../../store/authStore';
 import {
-  BookOpen, CheckCircle2, Clock, AlertTriangle, ChevronLeft, Plus, Mic,
+  BookOpen, CheckCircle2, Clock, AlertTriangle, ChevronLeft, Plus, Info, X, Users,
 } from 'lucide-react';
 import { quranSurahs } from './ManageTasks';
 
@@ -29,9 +29,109 @@ const statusConfig = {
   OVERDUE: { label: 'متأخرة', color: 'bg-red-50 text-red-700 border-red-200', icon: AlertTriangle },
 };
 
+type TaskStudent = {
+  id: string;
+  status: 'ASSIGNED' | 'COMPLETED' | 'OVERDUE';
+  student: { id: string; fullName: string; avatarUrl?: string };
+  submissions: { id: string; status: string; submittedAt: string }[];
+};
+
+const TaskStudentsModal = ({ taskId, taskTitle, onClose }: { taskId: string; taskTitle: string; onClose: () => void }) => {
+  const { data, isLoading } = useQuery({
+    queryKey: ['task-students', taskId],
+    queryFn: () => apiCall<{ students: TaskStudent[] }>(`/tasks/${taskId}/students`),
+  });
+
+  const students = data?.students ?? [];
+  const completed = students.filter(s => s.status === 'COMPLETED').length;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-in fade-in">
+      <div className="w-full max-w-lg bg-card rounded-[2rem] shadow-2xl border-2 border-border flex flex-col max-h-[80vh]">
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-border shrink-0">
+          <div>
+            <h3 className="text-xl font-black text-foreground">تتبع الطلاب</h3>
+            <p className="text-sm text-muted-foreground font-bold mt-0.5">{taskTitle}</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-black text-emerald-600 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-xl">
+              {completed}/{students.length} أتموا
+            </span>
+            <button onClick={onClose} className="p-2 rounded-xl hover:bg-muted transition-colors">
+              <X className="h-5 w-5 text-muted-foreground" />
+            </button>
+          </div>
+        </div>
+
+        {/* Progress bar */}
+        {students.length > 0 && (
+          <div className="px-6 pt-4 shrink-0">
+            <div className="w-full bg-muted rounded-full h-2.5">
+              <div
+                className="bg-emerald-500 h-2.5 rounded-full transition-all duration-500"
+                style={{ width: `${Math.round((completed / students.length) * 100)}%` }}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground font-bold mt-1.5 text-left" dir="ltr">
+              {Math.round((completed / students.length) * 100)}% مكتمل
+            </p>
+          </div>
+        )}
+
+        {/* Student list */}
+        <div className="overflow-y-auto flex-1 p-6 space-y-3">
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+            </div>
+          ) : students.length === 0 ? (
+            <div className="text-center py-10">
+              <Users className="h-12 w-12 text-muted-foreground/40 mx-auto mb-3" />
+              <p className="font-bold text-muted-foreground">لا يوجد طلاب مخصصون لهذه المهمة</p>
+            </div>
+          ) : (
+            students.map((item) => {
+              const isCompleted = item.status === 'COMPLETED';
+              const isOverdue = item.status === 'OVERDUE';
+              const lastSub = item.submissions[0];
+              return (
+                <div key={item.id} className="flex items-center gap-4 p-4 rounded-2xl border-2 border-border bg-background">
+                  <div className="h-10 w-10 shrink-0 rounded-full bg-primary/10 text-primary font-black text-lg flex items-center justify-center overflow-hidden">
+                    {item.student.avatarUrl
+                      ? <img src={item.student.avatarUrl} className="w-full h-full object-cover" />
+                      : item.student.fullName[0]}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-black text-foreground truncate">{item.student.fullName}</p>
+                    {lastSub && (
+                      <p className="text-xs text-muted-foreground font-bold mt-0.5">
+                        آخر تسليم: {new Date(lastSub.submittedAt).toLocaleDateString('ar-DZ')}
+                      </p>
+                    )}
+                  </div>
+                  <span className={`shrink-0 flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-black ${
+                    isCompleted ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                    : isOverdue ? 'bg-red-50 text-red-700 border-red-200'
+                    : 'bg-blue-50 text-blue-700 border-blue-200'
+                  }`}>
+                    {isCompleted ? <CheckCircle2 className="h-3.5 w-3.5" /> : isOverdue ? <AlertTriangle className="h-3.5 w-3.5" /> : <Clock className="h-3.5 w-3.5" />}
+                    {isCompleted ? 'مكتمل' : isOverdue ? 'متأخر' : 'جاري'}
+                  </span>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export const Tasks = () => {
   const { user } = useAuthStore();
   const [filter, setFilter] = useState<string>('');
+  const [taskStudentsModal, setTaskStudentsModal] = useState<{ id: string; title: string } | null>(null);
   const qc = useQueryClient();
 
   const { data, isLoading } = useQuery({
@@ -54,6 +154,13 @@ export const Tasks = () => {
 
   return (
     <div className="space-y-6">
+      {taskStudentsModal && (
+        <TaskStudentsModal
+          taskId={taskStudentsModal.id}
+          taskTitle={taskStudentsModal.title}
+          onClose={() => setTaskStudentsModal(null)}
+        />
+      )}
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between animate-fade-in">
         <div>
@@ -193,6 +300,13 @@ export const Tasks = () => {
                     <div className="flex w-full items-center justify-between rounded-2xl bg-muted/30 p-2">
                       <span className="text-sm text-foreground font-black px-2">{task.student.fullName}</span>
                       <div className="flex gap-1.5">
+                        <button
+                          onClick={() => setTaskStudentsModal({ id: task.id, title: `سورة ${quranSurahs[task.surahNumber - 1]?.name || task.surahNumber} (${task.ayahStart}–${task.ayahEnd})` })}
+                          className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-100 text-sky-600 transition-all hover:bg-sky-500 hover:text-white active:scale-95"
+                          title="عرض حالة الطلاب"
+                        >
+                          <Info className="h-4 w-4" />
+                        </button>
                         <Link
                           to="/manage/tasks"
                           state={{ editTask: task }}

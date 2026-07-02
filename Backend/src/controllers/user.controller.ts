@@ -8,9 +8,9 @@ import { sendError, sendSuccess, zodToFieldErrors } from '../utils/api-response'
 import { writeAuditLog } from '../utils/audit';
 
 const createUserSchema = z.object({
+  id: z.string().uuid(),
   email: z.string().trim().toLowerCase().email(),
   fullName: z.string().trim().min(2).max(100),
-  password: z.string().min(8),
   role: z.nativeEnum(Role),
 });
 
@@ -19,6 +19,7 @@ const updateUserSchema = z.object({
   phone: z.string().trim().max(20).optional().nullable(),
   role: z.nativeEnum(Role).optional(),
   isActive: z.boolean().optional(),
+  bio: z.string().optional(),
 });
 
 const publicUserSelect = {
@@ -28,6 +29,7 @@ const publicUserSelect = {
   role: true,
   phone: true,
   avatarUrl: true,
+  bio: true,
   isActive: true,
   createdAt: true,
   studentProfile: {
@@ -84,7 +86,7 @@ export const listUsers = async (req: AuthRequest, res: Response): Promise<void> 
   console.log(`[DEBUG listUsers] user role: ${req.user?.role}, id: ${req.user?.id}`);
   console.log(`[DEBUG listUsers] whereClause:`, JSON.stringify(whereClause, null, 2));
 
-  const users = await prisma.user.findMany({
+  const users = await prisma.profile.findMany({
     where: whereClause,
     orderBy: { createdAt: 'desc' },
     take: 100,
@@ -99,7 +101,7 @@ export const listUsers = async (req: AuthRequest, res: Response): Promise<void> 
 export const createUser = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const data = createUserSchema.parse(req.body);
-    const existingUser = await prisma.user.findUnique({
+    const existingUser = await prisma.profile.findUnique({
       where: { email: data.email },
       select: { id: true },
     });
@@ -109,13 +111,12 @@ export const createUser = async (req: AuthRequest, res: Response): Promise<void>
       return;
     }
 
-    const passwordHash = await bcrypt.hash(data.password, 12);
     const user = await prisma.$transaction(async (tx) => {
-      const createdUser = await tx.user.create({
+      const createdUser = await tx.profile.create({
         data: {
+          id: data.id,
           email: data.email,
           fullName: data.fullName,
-          passwordHash,
           role: data.role,
         },
         select: publicUserSelect,
@@ -148,7 +149,7 @@ export const createUser = async (req: AuthRequest, res: Response): Promise<void>
 export const updateUser = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const data = updateUserSchema.parse(req.body);
-    const user = await prisma.user.update({
+    const user = await prisma.profile.update({
       where: { id: req.params.id },
       data,
       select: publicUserSelect,
@@ -180,7 +181,7 @@ export const selectTeacher = async (req: AuthRequest, res: Response): Promise<vo
       sendError(res, 403, 'Only students can select a teacher'); return;
     }
 
-    const teacher = await prisma.user.findUnique({ where: { id: teacherId, role: 'TEACHER' } });
+    const teacher = await prisma.profile.findUnique({ where: { id: teacherId, role: 'TEACHER' } });
     if (!teacher) {
       sendError(res, 404, 'Teacher not found'); return;
     }
@@ -190,10 +191,12 @@ export const selectTeacher = async (req: AuthRequest, res: Response): Promise<vo
       data: { teacherId, teacherStatus: 'PENDING' },
     });
 
+    const student = await prisma.profile.findUnique({ where: { id: userId }, select: { fullName: true } });
+
     await prisma.notification.create({
       data: {
         title: 'طلب انضمام جديد',
-        message: `يرغب الطالب ${req.user!.fullName} في الانضمام إلى مجموعتك.`,
+        message: `يرغب الطالب ${student!.fullName} في الانضمام إلى مجموعتك.`,
         type: 'AUTO',
         recipientId: teacherId,
         senderId: userId,
@@ -228,10 +231,23 @@ export const acceptStudent = async (req: AuthRequest, res: Response): Promise<vo
       data: { teacherStatus: status },
     });
 
+    const teacher = await prisma.profile.findUnique({ where: { id: req.user!.id }, select: { fullName: true } });
+
+    // Delete the original join-request notification from teacher's inbox
+    await prisma.notification.deleteMany({
+      where: {
+        recipientId: req.user!.id,
+        senderId: studentId,
+        type: 'AUTO',
+        title: 'طلب انضمام جديد',
+      }
+    });
+
+    // Notify the student of the decision
     await prisma.notification.create({
       data: {
         title: status === 'ACCEPTED' ? 'تم قبول طلب الانضمام' : 'تم رفض طلب الانضمام',
-        message: status === 'ACCEPTED' ? `لقد تم قبولك في مجموعة المعلم ${req.user!.fullName}.` : `نعتذر، لم يتم قبول طلب انضمامك لمجموعة المعلم ${req.user!.fullName}.`,
+        message: status === 'ACCEPTED' ? `لقد تم قبولك في مجموعة المعلم ${teacher!.fullName}.` : `نعتذر، لم يتم قبول طلب انضمامك لمجموعة المعلم ${teacher!.fullName}.`,
         type: 'AUTO',
         recipientId: studentId,
         senderId: req.user!.id,

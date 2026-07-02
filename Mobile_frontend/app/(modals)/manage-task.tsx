@@ -86,7 +86,7 @@ export default function ManageTaskScreen() {
   const currentSurah = quranSurahs[form.surahNumber - 1];
 
   return (
-    <ScrollView className="flex-1 bg-gray-50" contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
+    <ScrollView className="flex-1 bg-gray-50 dark:bg-gray-950" contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
       {error ? (
         <View className="bg-red-50 border border-red-200 p-3 rounded-xl mb-4">
           <Text className="text-sm font-bold text-red-700">{error}</Text>
@@ -100,7 +100,7 @@ export default function ManageTaskScreen() {
             <TouchableOpacity
               key={mode}
               onPress={() => setAssignMode(mode)}
-              className={`flex-1 py-3 rounded-xl items-center ${assignMode === mode ? 'bg-white shadow-sm' : ''}`}
+              className={`flex-1 py-3 rounded-xl items-center ${assignMode === mode ? 'bg-white dark:bg-gray-900 shadow-sm' : ''}`}
             >
               <Text className={`font-black text-sm ${assignMode === mode ? 'text-emerald-700' : 'text-gray-500'}`}>
                 {mode === 'student' ? 'طالب محدد' : 'فصل كامل'}
@@ -113,15 +113,15 @@ export default function ManageTaskScreen() {
       {/* Target selector */}
       {assignMode === 'class' ? (
         <View className="mb-4">
-          <Text className="mb-2 text-sm font-black text-gray-900">الفصل الدراسي</Text>
+          <Text className="mb-2 text-sm font-black text-gray-900 dark:text-white">الفصل الدراسي</Text>
           <View style={{ gap: 8 }}>
             {classes.map((cls: any) => (
               <TouchableOpacity
                 key={cls.id}
                 onPress={() => setForm({ ...form, classId: cls.id })}
-                className={`p-3 rounded-xl border-2 ${form.classId === cls.id ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 bg-white'}`}
+                className={`p-3 rounded-xl border-2 ${form.classId === cls.id ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900'}`}
               >
-                <Text className={`font-bold ${form.classId === cls.id ? 'text-emerald-700' : 'text-gray-700'}`}>
+                <Text className={`font-bold ${form.classId === cls.id ? 'text-emerald-700' : 'text-gray-700 dark:text-gray-300'}`}>
                   {cls.name} ({cls._count?.students || 0} طالب)
                 </Text>
               </TouchableOpacity>
@@ -130,16 +130,16 @@ export default function ManageTaskScreen() {
         </View>
       ) : (
         <View className="mb-4">
-          <Text className="mb-2 text-sm font-black text-gray-900">اختر الطالب</Text>
+          <Text className="mb-2 text-sm font-black text-gray-900 dark:text-white">اختر الطالب</Text>
           <ScrollView style={{ maxHeight: 150 }} nestedScrollEnabled>
             <View style={{ gap: 8 }}>
               {students.map((s: any) => (
                 <TouchableOpacity
                   key={s.id}
                   onPress={() => setForm({ ...form, studentId: s.id })}
-                  className={`p-3 rounded-xl border-2 ${form.studentId === s.id ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 bg-white'}`}
+                  className={`p-3 rounded-xl border-2 ${form.studentId === s.id ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900'}`}
                 >
-                  <Text className={`font-bold ${form.studentId === s.id ? 'text-emerald-700' : 'text-gray-700'}`}>{s.fullName}</Text>
+                  <Text className={`font-bold ${form.studentId === s.id ? 'text-emerald-700' : 'text-gray-700 dark:text-gray-300'}`}>{s.fullName}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -149,14 +149,14 @@ export default function ManageTaskScreen() {
 
       {/* Task type */}
       <View className="mb-4">
-        <Text className="mb-2 text-sm font-black text-gray-900">نوع الورد</Text>
+        <Text className="mb-2 text-sm font-black text-gray-900 dark:text-white">نوع الورد</Text>
         <View className="flex-row" style={{ gap: 12 }}>
           {(['NEW', 'REVISION'] as const).map((t) => (
             <TouchableOpacity
               key={t}
               onPress={() => setForm({ ...form, taskType: t })}
               className={`flex-1 py-4 rounded-2xl border-2 items-center ${
-                form.taskType === t ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 bg-white'
+                form.taskType === t ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900'
               }`}
             >
               <Text className={`font-black ${form.taskType === t ? 'text-emerald-700' : 'text-gray-500'}`}>
@@ -169,16 +169,16 @@ export default function ManageTaskScreen() {
 
       {/* Surah selection */}
       <View className="mb-4">
-        <Text className="mb-2 text-sm font-black text-gray-900">السورة</Text>
+        <Text className="mb-2 text-sm font-black text-gray-900 dark:text-white">السورة</Text>
         <ScrollView style={{ maxHeight: 120 }} nestedScrollEnabled>
           <View style={{ gap: 4 }}>
             {quranSurahs.map((s) => (
               <TouchableOpacity
                 key={s.id}
                 onPress={() => setForm({ ...form, surahNumber: s.id, ayahStart: 1, ayahEnd: s.ayahs })}
-                className={`p-2 rounded-lg ${form.surahNumber === s.id ? 'bg-emerald-100' : 'bg-white'}`}
+                className={`p-2 rounded-lg ${form.surahNumber === s.id ? 'bg-emerald-100' : 'bg-white dark:bg-gray-900'}`}
               >
-                <Text className={`text-sm font-bold ${form.surahNumber === s.id ? 'text-emerald-700' : 'text-gray-700'}`}>
+                <Text className={`text-sm font-bold ${form.surahNumber === s.id ? 'text-emerald-700' : 'text-gray-700 dark:text-gray-300'}`}>
                   {s.id}. {s.name} ({s.ayahs} آية)
                 </Text>
               </TouchableOpacity>
@@ -190,33 +190,33 @@ export default function ManageTaskScreen() {
       {/* Ayah range */}
       <View className="flex-row mb-4" style={{ gap: 12 }}>
         <View className="flex-1">
-          <Text className="mb-2 text-sm font-black text-gray-900">آية البداية</Text>
+          <Text className="mb-2 text-sm font-black text-gray-900 dark:text-white">آية البداية</Text>
           <TextInput
             value={String(form.ayahStart)}
             onChangeText={(t) => setForm({ ...form, ayahStart: parseInt(t) || 1 })}
             keyboardType="numeric"
-            className="bg-white border border-gray-200 rounded-xl p-3 text-center font-black text-lg"
+            className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-3 text-center font-black text-lg"
           />
         </View>
         <View className="flex-1">
-          <Text className="mb-2 text-sm font-black text-gray-900">آية النهاية</Text>
+          <Text className="mb-2 text-sm font-black text-gray-900 dark:text-white">آية النهاية</Text>
           <TextInput
             value={String(form.ayahEnd)}
             onChangeText={(t) => setForm({ ...form, ayahEnd: parseInt(t) || 1 })}
             keyboardType="numeric"
-            className="bg-white border border-gray-200 rounded-xl p-3 text-center font-black text-lg"
+            className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-3 text-center font-black text-lg"
           />
         </View>
       </View>
 
       {/* Due date */}
       <View className="mb-4">
-        <Text className="mb-2 text-sm font-black text-gray-900">تاريخ الاستحقاق</Text>
+        <Text className="mb-2 text-sm font-black text-gray-900 dark:text-white">تاريخ الاستحقاق</Text>
         <TouchableOpacity
           onPress={() => setShowDatePicker(true)}
-          className="bg-white border border-gray-200 rounded-xl p-3 flex-row items-center justify-between"
+          className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-3 flex-row items-center justify-between"
         >
-          <Text className="font-bold text-gray-700">{form.dueDate.toISOString().slice(0, 10)}</Text>
+          <Text className="font-bold text-gray-700 dark:text-gray-300">{form.dueDate.toISOString().slice(0, 10)}</Text>
           <Ionicons name="calendar-outline" size={20} color="#059669" />
         </TouchableOpacity>
         <DateTimePickerModal
@@ -231,14 +231,14 @@ export default function ManageTaskScreen() {
 
       {/* Notes */}
       <View className="mb-6">
-        <Text className="mb-2 text-sm font-black text-gray-900">ملاحظات</Text>
+        <Text className="mb-2 text-sm font-black text-gray-900 dark:text-white">ملاحظات</Text>
         <TextInput
           value={form.notes}
           onChangeText={(t) => setForm({ ...form, notes: t })}
           multiline
           numberOfLines={3}
           placeholder="توجيهات للطالب (اختياري)"
-          className="bg-white border border-gray-200 rounded-xl p-3 text-base"
+          className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-3 text-base"
           style={{ minHeight: 80, textAlignVertical: 'top' }}
         />
       </View>

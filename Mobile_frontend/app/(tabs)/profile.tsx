@@ -153,7 +153,7 @@ export default function ProfileScreen() {
   };
 
   return (
-    <ScrollView className="flex-1 bg-gray-50 dark:bg-gray-950" contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
+    <ScrollView className="flex-1 bg-gray-50 dark:bg-gray-950 dark:bg-gray-950" contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
       {/* Profile Header Card */}
       <View className="bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 p-6 items-center shadow-sm mb-8">
         <View className="h-28 w-28 rounded-full bg-emerald-100 dark:bg-emerald-900 items-center justify-center mb-4 border-4 border-white dark:border-gray-900 shadow-md relative">
@@ -225,7 +225,7 @@ export default function ProfileScreen() {
 
       {/* Info Modal */}
       <Modal visible={infoModal} animationType="slide" presentationStyle="pageSheet">
-        <View className="flex-1 bg-white dark:bg-gray-950 p-6">
+        <View className="flex-1 bg-white dark:bg-gray-900 p-6">
           <View className="flex-row justify-between items-center mb-6">
             <Text className="text-2xl font-bold text-gray-900 dark:text-white">المعلومات الشخصية</Text>
             <TouchableOpacity onPress={() => setInfoModal(false)}>
@@ -234,11 +234,11 @@ export default function ProfileScreen() {
           </View>
           <View className="mb-4">
             <Text className="text-gray-500 dark:text-gray-400 mb-2 font-bold">الاسم الكامل</Text>
-            <TextInput value={editName} onChangeText={setEditName} className="border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white rounded-xl p-4 text-base font-bold" />
+            <TextInput value={editName} onChangeText={setEditName} className="border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 dark:bg-gray-900 text-gray-900 dark:text-white rounded-xl p-4 text-base font-bold" />
           </View>
           <View className="mb-6">
             <Text className="text-gray-500 dark:text-gray-400 mb-2 font-bold">رقم الهاتف</Text>
-            <TextInput value={editPhone} onChangeText={setEditPhone} keyboardType="phone-pad" className="border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white rounded-xl p-4 text-base font-bold" />
+            <TextInput value={editPhone} onChangeText={setEditPhone} keyboardType="phone-pad" className="border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 dark:bg-gray-900 text-gray-900 dark:text-white rounded-xl p-4 text-base font-bold" />
           </View>
           <TouchableOpacity onPress={updateInfo} disabled={infoLoading} className="bg-primary-600 rounded-xl p-4 items-center">
             {infoLoading ? <ActivityIndicator color="#fff" /> : <Text className="text-white font-bold text-lg">حفظ التعديلات</Text>}
@@ -248,7 +248,7 @@ export default function ProfileScreen() {
 
       {/* Password Modal */}
       <Modal visible={passwordModal} animationType="slide" presentationStyle="pageSheet">
-        <View className="flex-1 bg-white dark:bg-gray-950 p-6">
+        <View className="flex-1 bg-white dark:bg-gray-900 p-6">
           <View className="flex-row justify-between items-center mb-6">
             <Text className="text-2xl font-bold text-gray-900 dark:text-white">تغيير كلمة المرور</Text>
             <TouchableOpacity onPress={() => setPasswordModal(false)}>
@@ -257,15 +257,15 @@ export default function ProfileScreen() {
           </View>
           <View className="mb-4">
             <Text className="text-gray-500 dark:text-gray-400 mb-2 font-bold">كلمة المرور الحالية</Text>
-            <TextInput value={oldPassword} onChangeText={setOldPassword} secureTextEntry className="border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white rounded-xl p-4 text-base" />
+            <TextInput value={oldPassword} onChangeText={setOldPassword} secureTextEntry className="border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 dark:bg-gray-900 text-gray-900 dark:text-white rounded-xl p-4 text-base" />
           </View>
           <View className="mb-4">
             <Text className="text-gray-500 dark:text-gray-400 mb-2 font-bold">كلمة المرور الجديدة</Text>
-            <TextInput value={newPassword} onChangeText={setNewPassword} secureTextEntry className="border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white rounded-xl p-4 text-base" />
+            <TextInput value={newPassword} onChangeText={setNewPassword} secureTextEntry className="border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 dark:bg-gray-900 text-gray-900 dark:text-white rounded-xl p-4 text-base" />
           </View>
           <View className="mb-6">
             <Text className="text-gray-500 dark:text-gray-400 mb-2 font-bold">تأكيد كلمة المرور الجديدة</Text>
-            <TextInput value={confirmNewPassword} onChangeText={setConfirmNewPassword} secureTextEntry className="border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white rounded-xl p-4 text-base" />
+            <TextInput value={confirmNewPassword} onChangeText={setConfirmNewPassword} secureTextEntry className="border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 dark:bg-gray-900 text-gray-900 dark:text-white rounded-xl p-4 text-base" />
           </View>
           <TouchableOpacity onPress={updatePassword} disabled={passLoading} className="bg-primary-600 rounded-xl p-4 items-center">
             {passLoading ? <ActivityIndicator color="#fff" /> : <Text className="text-white font-bold text-lg">تحديث كلمة المرور</Text>}
@@ -275,14 +275,14 @@ export default function ProfileScreen() {
 
       {/* Help Modal */}
       <Modal visible={helpModal} animationType="slide" presentationStyle="pageSheet">
-        <View className="flex-1 bg-white dark:bg-gray-950 p-6">
+        <View className="flex-1 bg-white dark:bg-gray-900 p-6">
           <View className="flex-row justify-between items-center mb-6">
             <Text className="text-2xl font-bold text-gray-900 dark:text-white">مركز المساعدة</Text>
             <TouchableOpacity onPress={() => setHelpModal(false)}>
               <Ionicons name="close" size={28} color="#6b7280" />
             </TouchableOpacity>
           </View>
-          <Text className="text-gray-600 dark:text-gray-400 mb-6 font-bold leading-relaxed">
+          <Text className="text-gray-600 dark:text-gray-400 dark:text-gray-400 mb-6 font-bold leading-relaxed">
             كيف يمكننا مساعدتك؟ يمكنك كتابة ملاحظاتك، شكواك، أو استفساراتك وسنقوم بالرد عليك في أقرب وقت.
           </Text>
           <View className="mb-6">
@@ -290,7 +290,7 @@ export default function ProfileScreen() {
               value={helpMessage}
               onChangeText={setHelpMessage}
               multiline
-              className="border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white rounded-xl p-4 text-base h-40"
+              className="border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 dark:bg-gray-900 text-gray-900 dark:text-white rounded-xl p-4 text-base h-40"
               style={{ textAlignVertical: 'top' }}
               placeholder="اكتب رسالتك هنا..."
               placeholderTextColor="#9ca3af"

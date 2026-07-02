@@ -104,13 +104,13 @@ export default function ManageExamScreen() {
   const activeQ = questions.find(q => q.id === activeQuestionId);
 
   return (
-    <ScrollView className="flex-1 bg-gray-50" contentContainerStyle={{ padding: 16, paddingBottom: 100 }}>
+    <ScrollView className="flex-1 bg-gray-50 dark:bg-gray-950" contentContainerStyle={{ padding: 16, paddingBottom: 100 }}>
       {/* Exam header */}
-      <View className="bg-white rounded-3xl p-5 shadow-sm border-t-4 border-t-emerald-600 mb-6">
+      <View className="bg-white dark:bg-gray-900 rounded-3xl p-5 shadow-sm border-t-4 border-t-emerald-600 mb-6">
         <TextInput
           value={title}
           onChangeText={setTitle}
-          className="text-2xl font-black text-gray-900 border-b border-transparent focus:border-emerald-500 pb-2 mb-3"
+          className="text-2xl font-black text-gray-900 dark:text-white border-b border-transparent focus:border-emerald-500 pb-2 mb-3"
           placeholder="عنوان الاختبار"
         />
         <TextInput
@@ -118,7 +118,7 @@ export default function ManageExamScreen() {
           onChangeText={setDescription}
           placeholder="وصف الاختبار (اختياري)"
           multiline
-          className="text-gray-600 pb-2"
+          className="text-gray-600 dark:text-gray-400 pb-2"
         />
         <View className="flex-row flex-wrap mt-4" style={{ gap: 12 }}>
           <View className="flex-1" style={{ minWidth: 120 }}>
@@ -126,7 +126,7 @@ export default function ManageExamScreen() {
             <View className="flex-row" style={{ gap: 8 }}>
               {(['WEEKLY', 'MONTHLY'] as const).map(t => (
                 <TouchableOpacity key={t} onPress={() => setExamType(t)}
-                  className={`flex-1 py-2 rounded-lg border ${examType === t ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200'}`}>
+                  className={`flex-1 py-2 rounded-lg border ${examType === t ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 dark:border-gray-700'}`}>
                   <Text className={`text-xs font-bold text-center ${examType === t ? 'text-emerald-700' : 'text-gray-500'}`}>
                     {t === 'WEEKLY' ? 'أسبوعي' : 'شهري'}
                   </Text>
@@ -137,20 +137,20 @@ export default function ManageExamScreen() {
           <View style={{ minWidth: 80 }}>
             <Text className="text-xs font-bold text-gray-500 mb-1">المدة (د)</Text>
             <TextInput value={String(timeLimitMinutes)} onChangeText={(t) => setTimeLimitMinutes(parseInt(t) || 30)}
-              keyboardType="numeric" className="bg-gray-50 border border-gray-200 rounded-lg p-2 text-sm text-center" />
+              keyboardType="numeric" className="bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-700 rounded-lg p-2 text-sm text-center" />
           </View>
           <View style={{ minWidth: 80 }}>
             <Text className="text-xs font-bold text-gray-500 mb-1">درجة النجاح</Text>
             <TextInput value={String(passingScore)} onChangeText={(t) => setPassingScore(parseInt(t) || 60)}
-              keyboardType="numeric" className="bg-gray-50 border border-gray-200 rounded-lg p-2 text-sm text-center" />
+              keyboardType="numeric" className="bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-700 rounded-lg p-2 text-sm text-center" />
           </View>
         </View>
         {/* Start / End */}
         <View className="flex-row mt-4" style={{ gap: 12 }}>
           <View className="flex-1">
             <Text className="text-xs font-bold text-gray-500 mb-1">وقت البدء</Text>
-            <TouchableOpacity onPress={() => setShowStartPicker(true)} className="bg-gray-50 border border-gray-200 rounded-lg p-2 flex-row items-center justify-between">
-              <Text className="text-sm font-bold text-gray-700">
+            <TouchableOpacity onPress={() => setShowStartPicker(true)} className="bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-700 rounded-lg p-2 flex-row items-center justify-between">
+              <Text className="text-sm font-bold text-gray-700 dark:text-gray-300">
                 {startDateTime.toISOString().slice(0, 10)} {startDateTime.getHours().toString().padStart(2, '0')}:{startDateTime.getMinutes().toString().padStart(2, '0')}
               </Text>
               <Ionicons name="calendar" size={16} color="#059669" />
@@ -158,8 +158,8 @@ export default function ManageExamScreen() {
           </View>
           <View className="flex-1">
             <Text className="text-xs font-bold text-gray-500 mb-1">وقت الانتهاء</Text>
-            <TouchableOpacity onPress={() => setShowEndPicker(true)} className="bg-gray-50 border border-gray-200 rounded-lg p-2 flex-row items-center justify-between">
-              <Text className="text-sm font-bold text-gray-700">
+            <TouchableOpacity onPress={() => setShowEndPicker(true)} className="bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-700 rounded-lg p-2 flex-row items-center justify-between">
+              <Text className="text-sm font-bold text-gray-700 dark:text-gray-300">
                 {endDateTime.toISOString().slice(0, 10)} {endDateTime.getHours().toString().padStart(2, '0')}:{endDateTime.getMinutes().toString().padStart(2, '0')}
               </Text>
               <Ionicons name="calendar" size={16} color="#059669" />
@@ -184,7 +184,7 @@ export default function ManageExamScreen() {
       </View>
 
       {/* Questions */}
-      <Text className="text-lg font-black text-gray-900 mb-3">الأسئلة ({questions.length})</Text>
+      <Text className="text-lg font-black text-gray-900 dark:text-white mb-3">الأسئلة ({questions.length})</Text>
 
       {questions.map((q, idx) => {
         const isActive = activeQuestionId === q.id;
@@ -193,7 +193,7 @@ export default function ManageExamScreen() {
             key={q.id}
             activeOpacity={0.9}
             onPress={() => setActiveQuestionId(q.id)}
-            className={`mb-3 rounded-2xl border bg-white p-4 ${isActive ? 'border-emerald-500' : 'border-gray-200'}`}
+            className={`mb-3 rounded-2xl border bg-white dark:bg-gray-900 p-4 ${isActive ? 'border-emerald-500' : 'border-gray-200 dark:border-gray-700'}`}
           >
             {isActive ? (
               <View style={{ gap: 12 }}>
@@ -201,13 +201,13 @@ export default function ManageExamScreen() {
                   value={q.questionText}
                   onChangeText={(t) => updateQuestion(q.id, { questionText: t })}
                   placeholder={`السؤال ${idx + 1}`}
-                  className="bg-gray-50 rounded-xl p-3 font-medium"
+                  className="bg-gray-50 dark:bg-gray-950 rounded-xl p-3 font-medium"
                 />
                 {/* Question type */}
                 <View className="flex-row" style={{ gap: 8 }}>
                   {(['MULTIPLE_CHOICE', 'TRUE_FALSE', 'SHORT_ANSWER'] as QuestionType[]).map(t => (
                     <TouchableOpacity key={t} onPress={() => updateQuestion(q.id, { questionType: t })}
-                      className={`flex-1 py-2 rounded-lg border ${q.questionType === t ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200'}`}>
+                      className={`flex-1 py-2 rounded-lg border ${q.questionType === t ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 dark:border-gray-700'}`}>
                       <Text className={`text-xs font-bold text-center ${q.questionType === t ? 'text-emerald-700' : 'text-gray-500'}`}>
                         {t === 'MULTIPLE_CHOICE' ? 'خيارات' : t === 'TRUE_FALSE' ? 'صح/خطأ' : 'نصي'}
                       </Text>
@@ -236,7 +236,7 @@ export default function ManageExamScreen() {
                             updateQuestion(q.id, { options: opts });
                             if (q.correctAnswer === opt) updateQuestion(q.id, { correctAnswer: t });
                           }}
-                          className="flex-1 bg-transparent py-1 font-medium border-b border-gray-200 focus:border-emerald-500"
+                          className="flex-1 bg-transparent py-1 font-medium border-b border-gray-200 dark:border-gray-700 focus:border-emerald-500"
                           placeholder={`الخيار ${oIdx + 1}`}
                         />
                         <TouchableOpacity onPress={() => {
@@ -257,14 +257,14 @@ export default function ManageExamScreen() {
                   <View style={{ gap: 8 }}>
                     {['صح', 'خطأ'].map(opt => (
                       <TouchableOpacity key={opt} onPress={() => updateQuestion(q.id, { correctAnswer: opt })}
-                        className={`flex-row items-center p-3 rounded-xl border-2 ${q.correctAnswer === opt ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200'}`}
+                        className={`flex-row items-center p-3 rounded-xl border-2 ${q.correctAnswer === opt ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 dark:border-gray-700'}`}
                         style={{ gap: 8 }}>
                         <View className={`h-6 w-6 rounded-full border-2 items-center justify-center ${
                           q.correctAnswer === opt ? 'border-emerald-500 bg-emerald-500' : 'border-gray-300'
                         }`}>
                           {q.correctAnswer === opt && <Ionicons name="checkmark" size={14} color="#fff" />}
                         </View>
-                        <Text className="font-medium text-gray-700">{opt}</Text>
+                        <Text className="font-medium text-gray-700 dark:text-gray-300">{opt}</Text>
                       </TouchableOpacity>
                     ))}
                   </View>
@@ -276,16 +276,16 @@ export default function ManageExamScreen() {
                     value={q.correctAnswer}
                     onChangeText={(t) => updateQuestion(q.id, { correctAnswer: t })}
                     placeholder="الإجابة النموذجية..."
-                    className="bg-gray-50 rounded-xl p-3 font-medium border-b-2 border-gray-200 focus:border-emerald-500"
+                    className="bg-gray-50 dark:bg-gray-950 rounded-xl p-3 font-medium border-b-2 border-gray-200 dark:border-gray-700 focus:border-emerald-500"
                   />
                 )}
 
                 {/* Points and delete */}
-                <View className="flex-row items-center justify-between pt-3 border-t border-gray-100">
+                <View className="flex-row items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-800">
                   <View className="flex-row items-center" style={{ gap: 8 }}>
-                    <Text className="text-sm font-bold text-gray-600">النقاط:</Text>
+                    <Text className="text-sm font-bold text-gray-600 dark:text-gray-400">النقاط:</Text>
                     <TextInput value={String(q.points)} onChangeText={(t) => updateQuestion(q.id, { points: parseInt(t) || 1 })}
-                      keyboardType="numeric" className="w-14 bg-gray-50 border border-gray-200 rounded-lg p-1 text-center font-bold" />
+                      keyboardType="numeric" className="w-14 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-700 rounded-lg p-1 text-center font-bold" />
                   </View>
                   {questions.length > 1 && (
                     <TouchableOpacity onPress={() => removeQuestion(q.id)}>
@@ -296,7 +296,7 @@ export default function ManageExamScreen() {
               </View>
             ) : (
               <View>
-                <Text className="font-bold text-gray-800">{q.questionText || 'سؤال بدون عنوان'}</Text>
+                <Text className="font-bold text-gray-800 dark:text-gray-200">{q.questionText || 'سؤال بدون عنوان'}</Text>
                 <Text className="text-sm text-gray-500 mt-1">
                   النوع: {q.questionType === 'MULTIPLE_CHOICE' ? 'خيارات' : q.questionType === 'TRUE_FALSE' ? 'صح/خطأ' : 'نصي'} | النقاط: {q.points}
                 </Text>
@@ -310,7 +310,7 @@ export default function ManageExamScreen() {
       <View className="flex-row mt-4" style={{ gap: 12 }}>
         <TouchableOpacity onPress={addQuestion} className="flex-1 flex-row items-center justify-center bg-gray-100 py-3 rounded-xl" style={{ gap: 6 }}>
           <Ionicons name="add" size={20} color="#4b5563" />
-          <Text className="font-bold text-gray-700">سؤال جديد</Text>
+          <Text className="font-bold text-gray-700 dark:text-gray-300">سؤال جديد</Text>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={handleSave}

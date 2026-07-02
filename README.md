@@ -60,11 +60,7 @@ npm run dev
 - **Backend Architecture:** Express.js setup with Helmet, CORS, and Zod validation. Unit tests configured with Vitest.
 - **Frontend Architecture:** Vite + React + TypeScript setup. Tailwind CSS customized with an Islamic Green color palette, and global CSS enforcing Right-to-Left (RTL) layout for Arabic text display.
 
-i give you the logo image is in racine folder (/e-maqra2a)
-make this logo in all the places it need to be
 
 
-make return button in the places they need in the exam generating and in all places that need in the mobile app for the user need to go back to the previous screen but don't replace the navigation bar
 
 
-when the new user log he will see list of the teachers and search bar for search and when he click to teacher he can choose him and have the messages side to message them

@@ -28,7 +28,7 @@ export default function StudentsScreen() {
 
   if (isLoading) {
     return (
-      <View className="flex-1 items-center justify-center bg-white">
+      <View className="flex-1 items-center justify-center bg-white dark:bg-gray-900">
         <ActivityIndicator size="large" color="#16a34a" />
       </View>
     );
@@ -37,9 +37,9 @@ export default function StudentsScreen() {
   const students = (data ?? []).filter((u: StudentUser) => u.role === 'STUDENT');
 
   return (
-    <ScrollView className="flex-1 bg-gray-50" contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
+    <ScrollView className="flex-1 bg-gray-50 dark:bg-gray-950" contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
       <View className="mb-4">
-        <Text className="text-xl font-black text-gray-900 flex-row items-center">
+        <Text className="text-xl font-black text-gray-900 dark:text-white flex-row items-center">
           <Ionicons name="people" size={22} color="#059669" /> إدارة الطلاب
         </Text>
         <Text className="mt-1 text-sm text-gray-500 font-medium">عرض بيانات وتقدم الطلاب المسجلين تحت إشرافك</Text>
@@ -60,10 +60,10 @@ export default function StudentsScreen() {
             const dateStr = `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()}`;
 
             return (
-              <View key={student.id} className="bg-white rounded-2xl border border-gray-200 p-4 shadow-sm">
+              <View key={student.id} className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700 p-4 shadow-sm">
                 <View className="flex-row justify-between items-start mb-3">
                   <View className="flex-1">
-                    <Text className="text-base font-black text-gray-900">{student.fullName}</Text>
+                    <Text className="text-base font-black text-gray-900 dark:text-white">{student.fullName}</Text>
                     <Text className="text-xs text-gray-500 mt-1">{student.email}</Text>
                   </View>
                   <View className={`px-2.5 py-1 rounded-full ${student.isActive ? 'bg-emerald-100' : 'bg-red-100'}`}>
@@ -77,7 +77,7 @@ export default function StudentsScreen() {
                   {student.phone && (
                     <View className="flex-row items-center gap-1 mt-1">
                       <Ionicons name="call" size={12} color="#4b5563" />
-                      <Text className="text-xs text-gray-600" style={{ textAlign: 'left' }}>{student.phone}</Text>
+                      <Text className="text-xs text-gray-600 dark:text-gray-400" style={{ textAlign: 'left' }}>{student.phone}</Text>
                     </View>
                   )}
                   {student.studentProfile?.class?.name && (

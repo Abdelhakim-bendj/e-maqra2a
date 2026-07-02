@@ -24,10 +24,10 @@ export default function ExamsScreen() {
   const exams = data?.exams ?? [];
 
   return (
-    <ScrollView className="flex-1 bg-gray-50" refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}>
+    <ScrollView className="flex-1 bg-gray-50 dark:bg-gray-950" refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}>
       <View className="px-4 pt-4 pb-2 flex-row items-center justify-between">
         <View>
-          <Text className="text-2xl font-bold text-gray-900">الاختبارات</Text>
+          <Text className="text-2xl font-bold text-gray-900 dark:text-white">الاختبارات</Text>
           <Text className="text-sm text-gray-500 mt-1">{user?.role === 'STUDENT' ? 'الاختبارات المتاحة ونتائجك' : 'إدارة اختبارات الطلاب'}</Text>
         </View>
         {user?.role !== 'STUDENT' && (
@@ -54,7 +54,7 @@ export default function ExamsScreen() {
             const isUpcoming = now < start && exam.status === 'PUBLISHED';
 
             return (
-              <View key={exam.id} className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
+              <View key={exam.id} className="bg-white dark:bg-gray-900 rounded-2xl p-4 border border-gray-100 dark:border-gray-800 shadow-sm">
                 <View className="flex-row items-center justify-between mb-2">
                   <Text className={`text-xs font-bold px-3 py-1 rounded-full ${exam.examType === 'WEEKLY' ? 'bg-blue-50 text-blue-700' : 'bg-purple-50 text-purple-700'}`}>
                     {exam.examType === 'WEEKLY' ? 'أسبوعي' : 'شهري'}
@@ -63,7 +63,7 @@ export default function ExamsScreen() {
                   {isUpcoming && <Text className="text-xs font-bold text-amber-600">قريباً</Text>}
                 </View>
 
-                <Text className="text-lg font-bold text-gray-900 mb-1">{exam.title}</Text>
+                <Text className="text-lg font-bold text-gray-900 dark:text-white mb-1">{exam.title}</Text>
 
                 <View className="flex-row gap-4 mb-3">
                   <Text className="text-xs text-gray-500">⏱ {exam.timeLimitMinutes} دقيقة</Text>
@@ -85,8 +85,8 @@ export default function ExamsScreen() {
                         <Text className="text-sm text-emerald-700">{exam.submissions[0].totalScore}/{exam.maxScore || 10}</Text>
                       </View>
                       <TouchableOpacity onPress={() => router.push({ pathname: '/(modals)/exam-results', params: { examId: exam.id } })}
-                        className="border border-gray-200 py-3 rounded-xl items-center">
-                        <Text className="text-sm font-bold text-gray-600">عرض الإجابات</Text>
+                        className="border border-gray-200 dark:border-gray-700 py-3 rounded-xl items-center">
+                        <Text className="text-sm font-bold text-gray-600 dark:text-gray-400">عرض الإجابات</Text>
                       </TouchableOpacity>
                     </View>
                   ) : isActive ? (
@@ -95,7 +95,7 @@ export default function ExamsScreen() {
                       <Text className="text-white font-bold">بدء الاختبار ←</Text>
                     </TouchableOpacity>
                   ) : (
-                    <View className="border border-gray-200 bg-gray-50 py-3 rounded-xl items-center mt-3">
+                    <View className="border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 py-3 rounded-xl items-center mt-3">
                       <Text className="text-sm font-bold text-gray-400">غير متاح حالياً</Text>
                     </View>
                   )
@@ -103,7 +103,7 @@ export default function ExamsScreen() {
                   <View className="flex-row gap-2 mt-2">
                     <TouchableOpacity onPress={() => router.push({ pathname: '/(modals)/exam-results', params: { examId: exam.id } })}
                       className="flex-1 bg-gray-100 py-3 rounded-xl items-center">
-                      <Text className="text-sm font-bold text-gray-700">الإجابات ({exam._count.submissions})</Text>
+                      <Text className="text-sm font-bold text-gray-700 dark:text-gray-300">الإجابات ({exam._count.submissions})</Text>
                     </TouchableOpacity>
                     <TouchableOpacity onPress={() => { Alert.alert('حذف', 'هل أنت متأكد؟', [{ text: 'إلغاء' }, { text: 'حذف', style: 'destructive', onPress: () => deleteExam.mutate(exam.id) }]); }}
                       className="bg-red-50 px-4 py-3 rounded-xl items-center">

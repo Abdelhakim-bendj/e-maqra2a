@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ArrowLeft, CheckCircle2, Eye, EyeOff, Lock, Mail, Sparkles, LogIn } from 'lucide-react';
-import { ApiError, apiCall } from '../../services/api';
+import { ArrowLeft, Eye, EyeOff, Lock, Mail, LogIn } from 'lucide-react';
+import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
 import type { User } from '../../store/authStore';
+import { apiCall } from '../../services/api';
 import logoUrl from '../../assets/logo.png';
 
 export const Login = () => {
@@ -24,15 +25,43 @@ export const Login = () => {
     setIsLoading(true);
 
     try {
-      const data = await apiCall<{ user: User }>('/auth/login', {
-        method: 'POST',
-        body: JSON.stringify({ email, password }),
+      // 1. Sign in with Supabase Auth directly (no backend call needed)
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
 
-      setUser(data.user);
+      if (authError) {
+        // Provide Arabic-friendly error messages
+        if (authError.message.includes('Invalid login credentials')) {
+          throw new Error('البريد الإلكتروني أو كلمة المرور غير صحيحة.');
+        }
+        if (authError.message.includes('Email not confirmed')) {
+          throw new Error('يرجى تأكيد بريدك الإلكتروني أولاً.');
+        }
+        throw new Error(authError.message);
+      }
+
+      if (!authData.session) {
+        throw new Error('فشل تسجيل الدخول. قد تحتاج إلى تأكيد بريدك الإلكتروني أولاً. تحقق من بريدك ثم حاول مجدداً.');
+      }
+
+      // 2. Fetch profile from our backend (which validates the Supabase JWT)
+      const profileData = await apiCall<{ user: User }>('/auth/profile', {
+        headers: {
+          Authorization: `Bearer ${authData.session.access_token}`,
+        },
+      });
+
+      setUser(profileData.user);
       navigate((location.state as { from?: string } | null)?.from || '/dashboard', { replace: true });
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'فشل تسجيل الدخول. تأكد من بياناتك.');
+      console.error('[LOGIN ERROR] Full error object:', err);
+      if (err instanceof Error) {
+        console.error('[LOGIN ERROR] Message:', err.message);
+        console.error('[LOGIN ERROR] Stack:', err.stack);
+      }
+      setError(err instanceof Error ? err.message : 'فشل تسجيل الدخول. تأكد من بياناتك.');
     } finally {
       setIsLoading(false);
     }

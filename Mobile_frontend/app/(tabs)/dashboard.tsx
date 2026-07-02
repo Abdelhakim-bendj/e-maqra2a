@@ -30,6 +30,13 @@ export default function DashboardScreen() {
     queryFn: () => apiClient.get('/dashboard').then((r) => r.data as DashboardPayload),
   });
 
+  const { data: statsData } = useQuery({
+    queryKey: ['navbar-stats'],
+    queryFn: () => apiClient.get('/dashboard/navbar-stats').then((r: any) => r.data),
+    enabled: !!user,
+    refetchInterval: 15000,
+  });
+
   const isStudentRestricted = user?.role === 'STUDENT' && user?.studentProfile?.teacherStatus !== 'ACCEPTED';
 
   const [showTeacherModal, setShowTeacherModal] = useState(false);
@@ -46,6 +53,7 @@ export default function DashboardScreen() {
     onSuccess: () => {
       Alert.alert('نجاح', 'تم إرسال طلبك للمعلم بنجاح! يرجى الانتظار حتى يتم القبول.');
       setShowTeacherModal(false);
+      apiClient.get('/auth/me').then((r: any) => useAuthStore.getState().setUser(r.data.user));
       refetch(); // to update status
     },
     onError: (err: any) => Alert.alert('خطأ', err.message),
@@ -53,8 +61,8 @@ export default function DashboardScreen() {
 
   if (isStudentRestricted) {
     return (
-      <View className="flex-1 items-center justify-center bg-gray-50 dark:bg-gray-950 p-6">
-        <View className="w-16 h-16 bg-amber-100 rounded-full items-center justify-center mb-4">
+      <View className="flex-1 items-center justify-center bg-gray-50 dark:bg-gray-950 dark:bg-gray-950 p-6">
+        <View className="w-16 h-16 bg-amber-100 dark:bg-amber-900/40 rounded-full items-center justify-center mb-4">
           <Ionicons name="shield-half" size={32} color="#d97706" />
         </View>
         <Text className="text-2xl font-bold text-gray-900 dark:text-white mb-2">الحساب قيد المراجعة</Text>
@@ -64,15 +72,16 @@ export default function DashboardScreen() {
             : 'يجب عليك اختيار معلم أولاً لتبدأ رحلتك التعليمية.'}
         </Text>
         {!user?.studentProfile?.teacherId && (
-          <View className="flex-1 w-full mt-4 bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-            <Text className="text-xl font-black text-gray-900 mb-4">المعلمين المتاحين</Text>
-            <View className="mb-4 flex-row items-center bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
+          <View className="flex-1 w-full mt-4 bg-white dark:bg-gray-900 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-800">
+            <Text className="text-xl font-black text-gray-900 dark:text-white mb-4">المعلمين المتاحين</Text>
+            <View className="mb-4 flex-row items-center bg-gray-50 dark:bg-gray-950 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3">
               <Ionicons name="search" size={20} color="#9ca3af" className="mr-2" />
               <TextInput
                 placeholder="ابحث عن معلم بالاسم أو النبذة..."
                 value={teacherSearch}
                 onChangeText={setTeacherSearch}
-                className="flex-1 text-right text-gray-900 font-bold ml-2"
+                className="flex-1 text-right text-gray-900 dark:text-white font-bold ml-2"
+                placeholderTextColor="#9ca3af"
               />
             </View>
             {isLoadingTeachers ? (
@@ -80,14 +89,14 @@ export default function DashboardScreen() {
             ) : (
               <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 20 }}>
                 {teachersData?.users?.filter((u: any) => u.role === 'TEACHER' && (u.fullName.includes(teacherSearch) || (u.bio && u.bio.includes(teacherSearch)))).map((teacher: any) => (
-                  <View key={teacher.id} className="bg-white rounded-2xl p-4 border border-gray-100 mb-3 shadow-sm flex-col">
+                  <View key={teacher.id} className="bg-white dark:bg-gray-900 rounded-2xl p-4 border border-gray-100 dark:border-gray-800 mb-3 shadow-sm flex-col">
                     <View className="flex-row items-center gap-3 mb-4">
-                      <View className="w-14 h-14 bg-primary-100 rounded-full items-center justify-center">
-                        <Text className="text-primary-700 font-bold text-xl">{teacher.fullName[0]}</Text>
+                      <View className="w-14 h-14 bg-primary-100 dark:bg-primary-900/40 rounded-full items-center justify-center">
+                        <Text className="text-primary-700 dark:text-primary-400 font-bold text-xl">{teacher.fullName[0]}</Text>
                       </View>
                       <View className="flex-1">
-                        <Text className="font-bold text-gray-900 text-lg">{teacher.fullName}</Text>
-                        <Text className="text-gray-500 text-xs mt-1" numberOfLines={2}>{teacher.bio || 'لا توجد نبذة شخصية'}</Text>
+                        <Text className="font-bold text-gray-900 dark:text-white text-lg">{teacher.fullName}</Text>
+                        <Text className="text-gray-500 dark:text-gray-400 text-xs mt-1" numberOfLines={2}>{teacher.bio || 'لا توجد نبذة شخصية'}</Text>
                       </View>
                     </View>
                     <View className="flex-row gap-2">
@@ -100,10 +109,10 @@ export default function DashboardScreen() {
                       </TouchableOpacity>
                       <TouchableOpacity 
                         onPress={() => router.push({ pathname: '/(tabs)/messages', params: { openChatWith: teacher.id } })}
-                        className="flex-1 bg-gray-100 border border-gray-200 px-4 py-3 rounded-xl items-center flex-row justify-center gap-2"
+                        className="flex-1 bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-700 px-4 py-3 rounded-xl items-center flex-row justify-center gap-2"
                       >
-                        <Ionicons name="chatbubble-ellipses" size={16} color="#374151" />
-                        <Text className="text-gray-700 font-bold text-sm">مراسلة</Text>
+                        <Ionicons name="chatbubble-ellipses" size={16} color="#9ca3af" />
+                        <Text className="text-gray-700 dark:text-gray-300 dark:text-gray-300 font-bold text-sm">مراسلة</Text>
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -120,11 +129,11 @@ export default function DashboardScreen() {
   }
 
   if (isLoading) {
-    return <View className="flex-1 items-center justify-center bg-gray-50 dark:bg-gray-950"><ActivityIndicator size="large" color="#047857" /></View>;
+    return <View className="flex-1 items-center justify-center bg-gray-50 dark:bg-gray-950 dark:bg-gray-950"><ActivityIndicator size="large" color="#047857" /></View>;
   }
   if (isError || !data) {
     return (
-      <View className="flex-1 items-center justify-center bg-gray-50 dark:bg-gray-950 p-6">
+      <View className="flex-1 items-center justify-center bg-gray-50 dark:bg-gray-950 dark:bg-gray-950 p-6">
         <Text className="text-lg font-bold text-red-500 dark:text-red-400 mb-2">تعذر تحميل لوحة التحكم</Text>
         <Text className="text-sm text-gray-500 dark:text-gray-400 text-center mb-4">
           {error instanceof Error ? error.message : 'حاول تحديث الصفحة'}
@@ -141,7 +150,7 @@ export default function DashboardScreen() {
   const role = dashboard.role || user?.role;
 
   return (
-    <ScrollView className="flex-1 bg-gray-50 dark:bg-gray-950" refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor="#047857" />}>
+    <ScrollView className="flex-1 bg-gray-50 dark:bg-gray-950 dark:bg-gray-950" refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor="#047857" />}>
       {/* Hero */}
       <View className="bg-gray-900 dark:bg-gray-900 px-6 pt-6 pb-8 rounded-b-3xl">
         <View className="flex-row items-center justify-between">
@@ -155,20 +164,24 @@ export default function DashboardScreen() {
           <View className="flex-row" style={{ gap: 12 }}>
             <TouchableOpacity 
               onPress={() => router.push('/(tabs)/messages')}
-              className="w-11 h-11 rounded-full bg-white/10 items-center justify-center relative shadow-sm"
+              className="w-11 h-11 rounded-full bg-white dark:bg-gray-900/10 items-center justify-center relative shadow-sm"
             >
               <Ionicons name="chatbubble-ellipses" size={22} color="#fff" />
               {/* Unread Badge */}
-              <View className="absolute top-0 right-0 w-3.5 h-3.5 bg-red-500 rounded-full border-2 border-gray-900" />
+              {statsData?.unreadMessages > 0 && (
+                <View className="absolute top-0 right-0 w-3.5 h-3.5 bg-red-500 rounded-full border-2 border-gray-900" />
+              )}
             </TouchableOpacity>
             
             <TouchableOpacity 
               onPress={() => router.push('/(tabs)/notifications')}
-              className="w-11 h-11 rounded-full bg-white/10 items-center justify-center relative shadow-sm"
+              className="w-11 h-11 rounded-full bg-white dark:bg-gray-900/10 items-center justify-center relative shadow-sm"
             >
               <Ionicons name="notifications" size={22} color="#fff" />
               {/* Unread Badge */}
-              <View className="absolute top-0 right-0 w-3.5 h-3.5 bg-red-500 rounded-full border-2 border-gray-900" />
+              {statsData?.unreadNotifications > 0 && (
+                <View className="absolute top-0 right-0 w-3.5 h-3.5 bg-red-500 rounded-full border-2 border-gray-900" />
+              )}
             </TouchableOpacity>
           </View>
         </View>
@@ -202,7 +215,7 @@ export default function DashboardScreen() {
               <Text className="text-sm text-gray-500 dark:text-gray-400 mt-1">المعلم: {dashboard.dailyTask.teacher.fullName}</Text>
             )}
             {/* Progress */}
-            <View className="mt-4 bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
+            <View className="mt-4 bg-gray-50 dark:bg-gray-950 dark:bg-gray-800 rounded-xl p-4">
               <View className="flex-row justify-between items-center mb-2">
                 <Text className="text-sm font-bold text-gray-500 dark:text-gray-400">تقدمك العام</Text>
                 <Text className="text-lg font-bold text-primary-700 dark:text-primary-400">{stats.progressPercent || 0}%</Text>
@@ -228,7 +241,7 @@ export default function DashboardScreen() {
               <Text className="text-sm text-gray-400 text-center py-4">لا توجد اختبارات قادمة حالياً</Text>
             ) : (
               dashboard.upcomingExams?.map((exam) => (
-                <View key={exam.id} className="flex-row justify-between items-center bg-gray-50 dark:bg-gray-800 rounded-xl p-4 mb-2">
+                <View key={exam.id} className="flex-row justify-between items-center bg-gray-50 dark:bg-gray-950 dark:bg-gray-800 rounded-xl p-4 mb-2">
                   <View>
                     <Text className="font-bold text-gray-900 dark:text-white">{exam.title}</Text>
                     <Text className="text-xs text-gray-500 dark:text-gray-400 mt-1">
@@ -287,7 +300,7 @@ export default function DashboardScreen() {
         <View className="mx-4 mt-4 mb-6 bg-white dark:bg-gray-900 rounded-2xl p-5 border border-gray-100 dark:border-gray-800 shadow-sm">
           <Text className="text-lg font-bold text-gray-900 dark:text-white mb-3">🔔 آخر الإشعارات</Text>
           {dashboard.notifications?.slice(0, 5).map((n) => (
-            <View key={n.id} className="bg-gray-50 dark:bg-gray-800 rounded-xl p-3 mb-2">
+            <View key={n.id} className="bg-gray-50 dark:bg-gray-950 dark:bg-gray-800 rounded-xl p-3 mb-2">
               <Text className="font-bold text-gray-900 dark:text-white text-sm">{n.title}</Text>
               <Text className="text-xs text-gray-500 dark:text-gray-400 mt-1" numberOfLines={2}>{n.message}</Text>
             </View>

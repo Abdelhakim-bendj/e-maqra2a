@@ -14,7 +14,7 @@ export default function ModalsLayout() {
         headerTitleAlign: 'center',
         headerLeft: () => (
           <TouchableOpacity onPress={() => router.back()} style={{ paddingRight: 15 }}>
-            <Ionicons name="arrow-back" size={24} color="#374151" />
+            <Ionicons name="arrow-back" size={24} color="#6b7280" />
           </TouchableOpacity>
         ),
       }}

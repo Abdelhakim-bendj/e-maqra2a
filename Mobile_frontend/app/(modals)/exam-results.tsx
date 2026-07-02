@@ -36,7 +36,7 @@ export default function ExamResultsScreen() {
 
   if (isLoading) {
     return (
-      <View className="flex-1 items-center justify-center bg-white">
+      <View className="flex-1 items-center justify-center bg-white dark:bg-gray-900">
         <ActivityIndicator size="large" color="#16a34a" />
       </View>
     );
@@ -46,7 +46,7 @@ export default function ExamResultsScreen() {
 
   if (submissions.length === 0) {
     return (
-      <View className="flex-1 items-center justify-center bg-white p-8">
+      <View className="flex-1 items-center justify-center bg-white dark:bg-gray-900 p-8">
         <Ionicons name="trophy-outline" size={48} color="#d1d5db" />
         <Text className="mt-4 font-black text-gray-400 text-base">لا توجد نتائج لعرضها حالياً</Text>
       </View>
@@ -54,7 +54,7 @@ export default function ExamResultsScreen() {
   }
 
   return (
-    <ScrollView className="flex-1 bg-gray-50" contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
+    <ScrollView className="flex-1 bg-gray-50 dark:bg-gray-950" contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
       <View style={{ gap: 20 }}>
         {submissions.map((sub) => {
           const totalPoints = sub.answers.reduce((acc, a) => acc + a.question.points, 0);
@@ -62,11 +62,11 @@ export default function ExamResultsScreen() {
           const dateStr = d.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 
           return (
-            <View key={sub.id} className="bg-white rounded-3xl border border-gray-200 p-5 shadow-sm">
+            <View key={sub.id} className="bg-white dark:bg-gray-900 rounded-3xl border border-gray-200 dark:border-gray-700 p-5 shadow-sm">
               {/* Submission header */}
-              <View className="flex-row justify-between items-center mb-4 pb-4 border-b border-gray-100">
+              <View className="flex-row justify-between items-center mb-4 pb-4 border-b border-gray-100 dark:border-gray-800">
                 <View className="flex-1">
-                  <Text className="text-lg font-black text-gray-900">{sub.student.fullName}</Text>
+                  <Text className="text-lg font-black text-gray-900 dark:text-white">{sub.student.fullName}</Text>
                   <Text className="text-xs font-bold text-gray-500 mt-1">تاريخ التسليم: {dateStr}</Text>
                 </View>
                 <View className="items-center">
@@ -77,21 +77,21 @@ export default function ExamResultsScreen() {
               </View>
 
               {/* Answers */}
-              <Text className="font-black text-gray-700 mb-3">تفاصيل الإجابات:</Text>
+              <Text className="font-black text-gray-700 dark:text-gray-300 mb-3">تفاصيل الإجابات:</Text>
               <View style={{ gap: 10 }}>
                 {sub.answers.map((answer, index) => (
-                  <View key={answer.id} className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
+                  <View key={answer.id} className="bg-gray-50 dark:bg-gray-950 rounded-2xl p-4 border border-gray-100 dark:border-gray-800">
                     <View className="flex-row justify-between items-start mb-3">
-                      <Text className="font-bold text-gray-900 flex-1 leading-relaxed">
+                      <Text className="font-bold text-gray-900 dark:text-white flex-1 leading-relaxed">
                         <Text className="text-emerald-600">{index + 1}. </Text>
                         {answer.question.questionText}
                       </Text>
-                      <View className="bg-white px-2 py-1 rounded-lg border border-gray-200 ml-2">
+                      <View className="bg-white dark:bg-gray-900 px-2 py-1 rounded-lg border border-gray-200 dark:border-gray-700 ml-2">
                         <Text className="text-xs font-bold text-gray-500">{answer.question.points} نقاط</Text>
                       </View>
                     </View>
 
-                    <View className="flex-row items-center bg-white p-3 rounded-xl border border-gray-100" style={{ gap: 10 }}>
+                    <View className="flex-row items-center bg-white dark:bg-gray-900 p-3 rounded-xl border border-gray-100 dark:border-gray-800" style={{ gap: 10 }}>
                       {answer.isCorrect === true ? (
                         <Ionicons name="checkmark-circle" size={20} color="#10b981" />
                       ) : answer.isCorrect === false ? (
@@ -102,7 +102,7 @@ export default function ExamResultsScreen() {
                         </View>
                       )}
                       <View className="flex-1">
-                        <Text className="text-sm text-gray-700">
+                        <Text className="text-sm text-gray-700 dark:text-gray-300">
                           <Text className="font-bold text-gray-400">إجابة الطالب: </Text>
                           {answer.studentAnswer}
                         </Text>

@@ -9,6 +9,7 @@ import {
   getProfile,
   updateProfile,
   updatePassword,
+  syncProfile,
 } from "../controllers/auth.controller";
 import { authenticate } from "../middleware/auth.middleware";
 
@@ -26,5 +27,6 @@ router.post("/logout", authenticate, logout);
 router.get("/profile", authenticate, getProfile);
 router.patch("/profile", authenticate, updateProfile);
 router.put("/update-password", authenticate, updatePassword);
+router.post("/sync-profile", authenticate, syncProfile);
 
 export default router;

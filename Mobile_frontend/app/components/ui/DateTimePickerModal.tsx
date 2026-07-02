@@ -106,7 +106,7 @@ export default function DateTimePickerModal({ visible, onClose, mode, value, onC
     const y2 = center + Math.sin(rad) * lineRadius;
 
     return (
-      <View className="items-center justify-center relative bg-gray-50 rounded-full mx-auto" style={{ width: size, height: size, borderWidth: 1, borderColor: '#f3f4f6' }}>
+      <View className="items-center justify-center relative bg-gray-50 dark:bg-gray-950 rounded-full mx-auto" style={{ width: size, height: size, borderWidth: 1, borderColor: '#f3f4f6' }}>
         <Svg width={size} height={size} className="absolute inset-0">
           <Circle cx={center} cy={center} r={4} fill="#10b981" />
           <Line x1={center} y1={center} x2={x2} y2={y2} stroke="#10b981" strokeWidth={2} />
@@ -158,7 +158,7 @@ export default function DateTimePickerModal({ visible, onClose, mode, value, onC
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <View className="flex-1 bg-black/40 justify-center items-center px-4">
-        <View className="bg-white w-full max-w-sm rounded-3xl overflow-hidden shadow-xl border border-gray-100">
+        <View className="bg-white dark:bg-gray-900 w-full max-w-sm rounded-3xl overflow-hidden shadow-xl border border-gray-100 dark:border-gray-800">
           
           {/* Header */}
           <View className="bg-emerald-600 px-6 py-4">
@@ -189,11 +189,11 @@ export default function DateTimePickerModal({ visible, onClose, mode, value, onC
               <View>
                 {/* Month/Year selector */}
                 <View className="flex-row justify-between items-center mb-4 px-2">
-                  <TouchableOpacity onPress={prevMonth} className="p-2 bg-gray-50 rounded-full">
+                  <TouchableOpacity onPress={prevMonth} className="p-2 bg-gray-50 dark:bg-gray-950 rounded-full">
                     <Ionicons name="chevron-forward" size={20} color="#374151" />
                   </TouchableOpacity>
-                  <Text className="text-lg font-black text-gray-900">{MONTHS[displayMonth]} {displayYear}</Text>
-                  <TouchableOpacity onPress={nextMonth} className="p-2 bg-gray-50 rounded-full">
+                  <Text className="text-lg font-black text-gray-900 dark:text-white">{MONTHS[displayMonth]} {displayYear}</Text>
+                  <TouchableOpacity onPress={nextMonth} className="p-2 bg-gray-50 dark:bg-gray-950 rounded-full">
                     <Ionicons name="chevron-back" size={20} color="#374151" />
                   </TouchableOpacity>
                 </View>
@@ -222,10 +222,10 @@ export default function DateTimePickerModal({ visible, onClose, mode, value, onC
                             }}
                             disabled={disabled}
                             className={`flex-1 items-center justify-center rounded-full ${
-                              isSelected ? 'bg-emerald-600' : disabled ? 'bg-gray-50 opacity-50' : 'bg-transparent hover:bg-gray-100'
+                              isSelected ? 'bg-emerald-600' : disabled ? 'bg-gray-50 dark:bg-gray-950 opacity-50' : 'bg-transparent hover:bg-gray-100'
                             }`}
                           >
-                            <Text className={`font-bold text-sm ${isSelected ? 'text-white' : disabled ? 'text-gray-400' : 'text-gray-700'}`}>
+                            <Text className={`font-bold text-sm ${isSelected ? 'text-white' : disabled ? 'text-gray-400' : 'text-gray-700 dark:text-gray-300'}`}>
                               {day}
                             </Text>
                           </TouchableOpacity>
@@ -256,7 +256,7 @@ export default function DateTimePickerModal({ visible, onClose, mode, value, onC
           </View>
 
           {/* Footer Actions */}
-          <View className="flex-row justify-end px-6 py-4 border-t border-gray-100" style={{ gap: 16 }}>
+          <View className="flex-row justify-end px-6 py-4 border-t border-gray-100 dark:border-gray-800" style={{ gap: 16 }}>
             <TouchableOpacity onPress={onClose} className="px-4 py-2">
               <Text className="text-gray-500 font-bold">إلغاء</Text>
             </TouchableOpacity>

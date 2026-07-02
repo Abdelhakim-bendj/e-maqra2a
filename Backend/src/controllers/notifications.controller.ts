@@ -64,7 +64,7 @@ export const sendNotification = async (req: AuthRequest, res: Response): Promise
         };
       }
 
-      const users = await prisma.user.findMany({
+      const users = await prisma.profile.findMany({
         where: roleWhere,
         select: { id: true },
       });

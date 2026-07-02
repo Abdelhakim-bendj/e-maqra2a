@@ -86,19 +86,19 @@ export default function NotificationsScreen() {
 
   if (isLoading) {
     return (
-      <View className="flex-1 items-center justify-center bg-white">
+      <View className="flex-1 items-center justify-center bg-white dark:bg-gray-900">
         <ActivityIndicator size="large" color="#16a34a" />
       </View>
     );
   }
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <View className="flex-1 bg-gray-50 dark:bg-gray-950">
       {/* Actions bar */}
       <View className="flex-row items-center justify-between px-4 pt-3 pb-2" style={{ gap: 8 }}>
         <View className="flex-row items-center" style={{ gap: 8 }}>
-          <TouchableOpacity onPress={() => router.back()} className="w-10 h-10 items-center justify-center bg-white rounded-full shadow-sm">
-            <Ionicons name="arrow-back" size={20} color="#374151" />
+          <TouchableOpacity onPress={() => router.back()} className="w-10 h-10 items-center justify-center bg-white dark:bg-gray-900 rounded-full shadow-sm">
+            <Ionicons name="arrow-back" size={20} color="#6b7280" />
           </TouchableOpacity>
           {user?.role !== 'STUDENT' && (
             <TouchableOpacity
@@ -118,7 +118,7 @@ export default function NotificationsScreen() {
             style={{ gap: 6 }}
           >
             <Ionicons name="checkmark-done" size={16} color="#4b5563" />
-            <Text className="text-gray-600 text-sm font-bold">تحديد الكل كمقروء</Text>
+            <Text className="text-gray-600 dark:text-gray-400 text-sm font-bold">تحديد الكل كمقروء</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -142,7 +142,7 @@ export default function NotificationsScreen() {
                   key={notif.id}
                   activeOpacity={0.8}
                   onPress={() => !notif.isRead && markReadMutation.mutate(notif.id)}
-                  className={`rounded-2xl border p-4 ${notif.isRead ? 'border-gray-200 bg-white' : 'border-emerald-200 bg-emerald-50'}`}
+                  className={`rounded-2xl border p-4 ${notif.isRead ? 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900' : 'border-emerald-200 bg-emerald-50'}`}
                 >
                   <View className="flex-row" style={{ gap: 12 }}>
                     {!notif.isRead && (
@@ -153,10 +153,10 @@ export default function NotificationsScreen() {
                     </View>
                     <View className="flex-1">
                       <View className="flex-row items-start justify-between">
-                        <Text className={`font-black flex-1 ${notif.isRead ? 'text-gray-700' : 'text-gray-900'}`}>{notif.title}</Text>
+                        <Text className={`font-black flex-1 ${notif.isRead ? 'text-gray-700 dark:text-gray-300' : 'text-gray-900 dark:text-white'}`}>{notif.title}</Text>
                         <Text className="text-xs font-bold text-gray-400 ml-2">{timeAgo(new Date(notif.createdAt))}</Text>
                       </View>
-                      <Text className="mt-1 text-sm text-gray-600 leading-relaxed">{notif.message}</Text>
+                      <Text className="mt-1 text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{notif.message}</Text>
                       {notif.sender && (
                         <Text className="mt-2 text-xs font-bold text-gray-400">بواسطة: {notif.sender.fullName}</Text>
                       )}
@@ -189,9 +189,9 @@ export default function NotificationsScreen() {
 
       {/* Send Notification Modal */}
       <Modal visible={sendModalOpen} animationType="slide" presentationStyle="pageSheet">
-        <View className="flex-1 bg-white">
-          <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-100">
-            <Text className="text-xl font-black text-gray-900">إرسال إشعار</Text>
+        <View className="flex-1 bg-white dark:bg-gray-900">
+          <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-800">
+            <Text className="text-xl font-black text-gray-900 dark:text-white">إرسال إشعار</Text>
             <TouchableOpacity onPress={() => setSendModalOpen(false)}>
               <Ionicons name="close" size={28} color="#6b7280" />
             </TouchableOpacity>
@@ -199,38 +199,38 @@ export default function NotificationsScreen() {
           <ScrollView contentContainerStyle={{ padding: 20 }}>
             <View style={{ gap: 16 }}>
               <View>
-                <Text className="mb-2 text-sm font-bold text-gray-700">عنوان الإشعار</Text>
+                <Text className="mb-2 text-sm font-bold text-gray-700 dark:text-gray-300">عنوان الإشعار</Text>
                 <TextInput
                   value={sendForm.title}
                   onChangeText={(t) => setSendForm({ ...sendForm, title: t })}
                   placeholder="مثال: تذكير بموعد الجلسة"
-                  className="w-full border border-gray-200 bg-gray-50 rounded-xl p-3 text-base font-medium"
+                  className="w-full border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 rounded-xl p-3 text-base font-medium"
                 />
               </View>
               <View>
-                <Text className="mb-2 text-sm font-bold text-gray-700">رسالة الإشعار</Text>
+                <Text className="mb-2 text-sm font-bold text-gray-700 dark:text-gray-300">رسالة الإشعار</Text>
                 <TextInput
                   value={sendForm.message}
                   onChangeText={(t) => setSendForm({ ...sendForm, message: t })}
                   placeholder="اكتب ملاحظاتك..."
                   multiline
                   numberOfLines={4}
-                  className="w-full border border-gray-200 bg-gray-50 rounded-xl p-3 text-base font-medium"
+                  className="w-full border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 rounded-xl p-3 text-base font-medium"
                   style={{ minHeight: 100, textAlignVertical: 'top' }}
                 />
               </View>
               <View>
-                <Text className="mb-2 text-sm font-bold text-gray-700">المجموعة المستهدفة</Text>
+                <Text className="mb-2 text-sm font-bold text-gray-700 dark:text-gray-300">المجموعة المستهدفة</Text>
                 <View className="flex-row" style={{ gap: 8 }}>
                   {['STUDENT', 'TEACHER'].map((role) => (
                     <TouchableOpacity
                       key={role}
                       onPress={() => setSendForm({ ...sendForm, recipientRole: role })}
                       className={`flex-1 py-3 rounded-xl border-2 items-center ${
-                        sendForm.recipientRole === role ? 'border-emerald-600 bg-emerald-50' : 'border-gray-200 bg-white'
+                        sendForm.recipientRole === role ? 'border-emerald-600 bg-emerald-50' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900'
                       }`}
                     >
-                      <Text className={`font-bold ${sendForm.recipientRole === role ? 'text-emerald-700' : 'text-gray-600'}`}>
+                      <Text className={`font-bold ${sendForm.recipientRole === role ? 'text-emerald-700' : 'text-gray-600 dark:text-gray-400'}`}>
                         {role === 'STUDENT' ? 'الطلاب' : 'المعلمين'}
                       </Text>
                     </TouchableOpacity>

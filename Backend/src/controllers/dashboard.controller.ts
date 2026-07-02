@@ -1,7 +1,7 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth.middleware';
 import prisma from '../utils/prisma';
-import { sendSuccess } from '../utils/api-response';
+import { sendSuccess, sendError } from '../utils/api-response';
 
 async function getStudentDashboard(userId: string) {
   const [task, completedTasks, pendingTasks, examCount, notifications, upcomingExams, submissions] =
@@ -88,9 +88,9 @@ async function getTeacherDashboard(userId: string) {
 
 async function getAdminDashboard() {
   const [users, teachers, students, exams, contentItems, notifications] = await Promise.all([
-    prisma.user.count(),
-    prisma.user.count({ where: { role: 'TEACHER' } }),
-    prisma.user.count({ where: { role: 'STUDENT' } }),
+    prisma.profile.count(),
+    prisma.profile.count({ where: { role: 'TEACHER' } }),
+    prisma.profile.count({ where: { role: 'STUDENT' } }),
     prisma.exam.count(),
     prisma.islamicContent.count(),
     prisma.notification.count(),
@@ -144,7 +144,12 @@ export const getNavbarStats = async (req: AuthRequest, res: Response): Promise<v
       });
     }
 
-    sendSuccess(res, { newTasks, newExams, pendingSubmissions }, 'Navbar stats loaded');
+    const [unreadMessages, unreadNotifications] = await Promise.all([
+      prisma.message.count({ where: { recipientId: userId, isRead: false } }),
+      prisma.notification.count({ where: { recipientId: userId, isRead: false } }),
+    ]);
+
+    sendSuccess(res, { newTasks, newExams, pendingSubmissions, unreadMessages, unreadNotifications }, 'Navbar stats loaded');
   } catch (error) {
     sendError(res, 500, 'Failed to load navbar stats');
   }

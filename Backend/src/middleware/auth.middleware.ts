@@ -25,7 +25,7 @@ async function getUserRole(userId: string): Promise<Role | null> {
     return cached.role;
   }
 
-  const user = await prisma.user.findUnique({
+  const user = await prisma.profile.findUnique({
     where: { id: userId },
     select: { role: true, isActive: true },
   });
@@ -53,20 +53,30 @@ export const authenticate = async (
     }
 
     if (!token) {
+      console.error('[AUTH MIDDLEWARE] Token is missing from cookies and authorization header.');
       sendError(res, 401, 'Authentication required');
       return;
     }
 
-    const decoded = verifyAccessToken(token);
+    let decoded;
+    try {
+      decoded = await verifyAccessToken(token);
+      console.log(`[AUTH MIDDLEWARE] Token successfully verified via Supabase for user: ${decoded.sub}`);
+    } catch (jwtError) {
+      console.error('[AUTH MIDDLEWARE] Supabase Token Verification failed! Error:', jwtError);
+      throw jwtError; // Re-throw to be caught by the outer catch block
+    }
     const userId = decoded.sub;
 
     if (!userId) {
+      console.error('[AUTH MIDDLEWARE] Invalid token payload, missing sub (userId). Decoded:', decoded);
       sendError(res, 401, 'Invalid token payload');
       return;
     }
 
     const role = await getUserRole(userId);
     if (!role) {
+      console.error(`[AUTH MIDDLEWARE] User inactive or not found for userId: ${userId}`);
       sendError(res, 401, 'User inactive or not found');
       return;
     }
@@ -80,14 +90,16 @@ export const authenticate = async (
     next();
   } catch (error) {
     if (error instanceof Error && error.name === 'TokenExpiredError') {
+      console.error('[AUTH MIDDLEWARE] Token expired error:', error);
       sendError(res, 401, 'Token expired');
       return;
     }
     if (error instanceof Error && error.name === 'JsonWebTokenError') {
+      console.error('[AUTH MIDDLEWARE] JsonWebTokenError (Invalid token):', error);
       sendError(res, 401, 'Invalid token');
       return;
     }
-    console.error('Auth middleware error:', error);
+    console.error('[AUTH MIDDLEWARE] Auth middleware unexpected error:', error);
     sendError(res, 500, 'Authentication failed');
   }
 };

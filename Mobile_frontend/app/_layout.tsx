@@ -22,7 +22,7 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
     if (isLoading) return;
     const inAuthGroup = segments[0] === '(auth)';
     if (!isAuthenticated && !inAuthGroup) {
-      router.replace('/(auth)/landing');
+      router.replace('/(auth)/entry');
     } else if (isAuthenticated && inAuthGroup) {
       router.replace('/(tabs)/dashboard');
     }

@@ -28,18 +28,18 @@ export default function ContentScreen() {
 
   if (isLoading) {
     return (
-      <View className="flex-1 items-center justify-center bg-white">
+      <View className="flex-1 items-center justify-center bg-white dark:bg-gray-900">
         <ActivityIndicator size="large" color="#16a34a" />
       </View>
     );
   }
 
   return (
-    <ScrollView className="flex-1 bg-gray-50" contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
+    <ScrollView className="flex-1 bg-gray-50 dark:bg-gray-950" contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
       {/* Header */}
       <View className="items-center mb-6">
         <Text className="text-2xl font-black text-gray-950">المحتوى الإسلامي</Text>
-        <Text className="mt-2 text-base text-gray-600 text-center">زاد الطالب من السيرة والأدعية وقصص الصحابة الكرام</Text>
+        <Text className="mt-2 text-base text-gray-600 dark:text-gray-400 text-center">زاد الطالب من السيرة والأدعية وقصص الصحابة الكرام</Text>
       </View>
 
       {items.length === 0 ? (
@@ -52,22 +52,22 @@ export default function ContentScreen() {
           {items.map((item) => {
             const config = categoryConfig[item.category] || categoryConfig.SUPPLICATION;
             return (
-              <View key={item.id} className="rounded-3xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+              <View key={item.id} className="rounded-3xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
                 {/* Header section */}
-                <View className="p-5 border-b border-gray-100" style={{ backgroundColor: config.bg }}>
+                <View className="p-5 border-b border-gray-100 dark:border-gray-800" style={{ backgroundColor: config.bg }}>
                   <View className="flex-row items-center mb-3" style={{ gap: 8 }}>
-                    <View className="h-10 w-10 rounded-2xl bg-white items-center justify-center shadow-sm">
+                    <View className="h-10 w-10 rounded-2xl bg-white dark:bg-gray-900 items-center justify-center shadow-sm">
                       <Ionicons name={config.icon as any} size={22} color={config.color} />
                     </View>
                   </View>
-                  <Text className="text-lg font-black text-gray-900" numberOfLines={2}>{item.title}</Text>
+                  <Text className="text-lg font-black text-gray-900 dark:text-white" numberOfLines={2}>{item.title}</Text>
                   <Text className="mt-1 text-xs font-bold" style={{ color: config.color }}>
                     {config.label} {item.subcategory ? `• ${item.subcategory}` : ''}
                   </Text>
                 </View>
                 {/* Body */}
                 <View className="p-5">
-                  <Text className="text-sm text-gray-600 leading-relaxed" numberOfLines={4}>{item.content}</Text>
+                  <Text className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed" numberOfLines={4}>{item.content}</Text>
                 </View>
               </View>
             );

@@ -8,7 +8,7 @@ export const getStudentReport = async (req: AuthRequest, res: Response): Promise
   const { studentId } = req.params;
   const { role, id: userId } = req.user!;
 
-  const student = await prisma.user.findUnique({
+  const student = await prisma.profile.findUnique({
     where: { id: studentId, role: 'STUDENT' },
     select: { id: true, fullName: true, createdAt: true },
   });
@@ -115,9 +115,9 @@ export const getAdminReport = async (req: AuthRequest, res: Response): Promise<v
     totalTasks, completedTasks, totalExams, totalSessions,
     totalSubmissions, avgAssessmentScore,
   ] = await Promise.all([
-    prisma.user.count({ where: { isActive: true } }),
-    prisma.user.count({ where: { role: 'STUDENT', isActive: true } }),
-    prisma.user.count({ where: { role: 'TEACHER', isActive: true } }),
+    prisma.profile.count({ where: { isActive: true } }),
+    prisma.profile.count({ where: { role: 'STUDENT', isActive: true } }),
+    prisma.profile.count({ where: { role: 'TEACHER', isActive: true } }),
     prisma.class.count(),
     prisma.memorizationTask.count(),
     prisma.memorizationTask.count({ where: { status: 'COMPLETED' } }),

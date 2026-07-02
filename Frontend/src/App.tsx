@@ -6,6 +6,7 @@ import { MainLayout } from './components/layout/MainLayout';
 import { Suspense, lazy } from 'react';
 import { useAuthStore, type User } from './store/authStore';
 import { apiCall } from './services/api';
+import { supabase } from './lib/supabase';
 
 const Login = lazy(() => import('./pages/auth/Login').then(module => ({ default: module.Login })));
 const Register = lazy(() => import('./pages/auth/Register').then(module => ({ default: module.Register })));
@@ -46,21 +47,31 @@ function AuthBootstrap() {
   useEffect(() => {
     let isMounted = true;
 
-    apiCall<{ user: User }>('/auth/profile')
-      .then((data) => {
+    // Listen to Supabase auth state changes (login, logout, token refresh)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (!isMounted) return;
+
+      if (!session) {
+        setUser(null);
+        return;
+      }
+
+      // Fetch backend profile using the Supabase JWT
+      try {
+        const data = await apiCall<{ user: User }>('/auth/profile', {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        });
         if (isMounted) setUser(data.user);
-      })
-      .catch(() => {
+      } catch {
         if (isMounted) setUser(null);
-      })
-      .finally(() => {
-        if (isMounted) setLoading(false);
-      });
+      }
+    });
 
     return () => {
       isMounted = false;
+      subscription.unsubscribe();
     };
-  }, [setLoading, setUser]);
+  }, [setUser, setLoading]);
 
   return null;
 }

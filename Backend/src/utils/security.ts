@@ -1,61 +1,27 @@
-import crypto from 'crypto';
-import jwt from 'jsonwebtoken';
-import { Role } from '@prisma/client';
-
-const ACCESS_TOKEN_TTL = '15m';
-export const REFRESH_TOKEN_TTL_DAYS = 7;
-export const PASSWORD_RESET_TTL_MINUTES = 30;
-
-function getSecret(name: 'JWT_ACCESS_SECRET' | 'JWT_REFRESH_SECRET'): string {
-  const value = process.env[name];
-  if (value && value.length >= 32) {
-    return value;
-  }
-
-  if (process.env.NODE_ENV === 'production') {
-    throw new Error(`${name} must be configured with at least 32 characters`);
-  }
-
-  return `${name.toLowerCase()}_development_secret_change_me_32_chars`;
-}
+import { createClient } from '@supabase/supabase-js';
 
 export type AccessTokenPayload = {
   sub: string;
-  role: Role;
-  email: string;
+  email?: string;
+  user_metadata?: any;
 };
 
-export function signAccessToken(payload: AccessTokenPayload): string {
-  return jwt.sign(payload, getSecret('JWT_ACCESS_SECRET'), {
-    expiresIn: ACCESS_TOKEN_TTL,
-    issuer: 'e-maqra2a-api',
-    audience: 'e-maqra2a-web',
-  });
-}
+const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || 'https://cdrlhdwlgvgwqwoewvac.supabase.co';
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey!);
 
-export function verifyAccessToken(token: string): AccessTokenPayload {
-  return jwt.verify(token, getSecret('JWT_ACCESS_SECRET'), {
-    issuer: 'e-maqra2a-api',
-    audience: 'e-maqra2a-web',
-  }) as AccessTokenPayload;
-}
+export async function verifyAccessToken(token: string): Promise<AccessTokenPayload> {
+  const { data, error } = await supabase.auth.getUser(token);
 
-export function createOpaqueToken(): string {
-  return crypto.randomBytes(48).toString('base64url');
-}
+  if (error || !data.user) {
+    const err = new Error('Invalid token');
+    err.name = 'JsonWebTokenError';
+    throw err;
+  }
 
-export function hashToken(token: string): string {
-  return crypto.createHash('sha256').update(token).digest('hex');
-}
-
-export function refreshTokenExpiry(): Date {
-  const expiresAt = new Date();
-  expiresAt.setDate(expiresAt.getDate() + REFRESH_TOKEN_TTL_DAYS);
-  return expiresAt;
-}
-
-export function passwordResetExpiry(): Date {
-  const expiresAt = new Date();
-  expiresAt.setMinutes(expiresAt.getMinutes() + PASSWORD_RESET_TTL_MINUTES);
-  return expiresAt;
+  return {
+    sub: data.user.id,
+    email: data.user.email,
+    user_metadata: data.user.user_metadata
+  };
 }

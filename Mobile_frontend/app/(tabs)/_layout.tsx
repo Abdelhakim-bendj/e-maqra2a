@@ -1,7 +1,9 @@
 import React from 'react';
 import { Tabs, useRouter } from 'expo-router';
-import { TouchableOpacity } from 'react-native';
+import { TouchableOpacity, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useColorScheme } from 'nativewind';
 import { useAuthStore } from '../../store/authStore';
 import { useLangStore } from '../../store/langStore';
 import { useQuery } from '@tanstack/react-query';
@@ -11,6 +13,8 @@ export default function TabsLayout() {
   const user = useAuthStore((s: any) => s.user);
   const { t } = useLangStore();
   const router = useRouter();
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === 'dark';
   const role = user?.role;
   const isStudentRestricted = role === 'STUDENT' && user?.studentProfile?.teacherStatus !== 'ACCEPTED';
 
@@ -21,17 +25,19 @@ export default function TabsLayout() {
     refetchInterval: 15000,
   });
 
+  const insets = useSafeAreaInsets();
+
   return (
     <Tabs
       screenOptions={{
         headerShown: true,
         headerTitleAlign: 'center',
-        tabBarActiveTintColor: '#047857',
-        tabBarInactiveTintColor: '#9ca3af',
-        tabBarStyle: { backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#e5e7eb', paddingBottom: 4, height: 60, elevation: 8, shadowColor: '#000', shadowOffset: { width: 0, height: -2 }, shadowOpacity: 0.1, shadowRadius: 8 },
-        headerStyle: { backgroundColor: '#fff' },
+        tabBarActiveTintColor: isDark ? '#34d399' : '#047857',
+        tabBarInactiveTintColor: isDark ? '#6b7280' : '#9ca3af',
+        tabBarStyle: { backgroundColor: isDark ? '#111827' : '#fff', borderTopWidth: 1, borderTopColor: isDark ? '#1f2937' : '#e5e7eb', paddingBottom: Platform.OS === 'android' ? 24 : Math.max(insets.bottom, 4), height: Platform.OS === 'android' ? 84 : 60 + Math.max(insets.bottom, 0), elevation: 8, shadowColor: '#000', shadowOffset: { width: 0, height: -2 }, shadowOpacity: 0.1, shadowRadius: 8 },
+        headerStyle: { backgroundColor: isDark ? '#111827' : '#fff' },
         headerShadowVisible: false,
-        headerTitleStyle: { fontWeight: '800', fontSize: 18, color: '#111827' },
+        headerTitleStyle: { fontWeight: '800', fontSize: 18, color: isDark ? '#f9fafb' : '#111827' },
         tabBarLabelStyle: { fontWeight: '700', fontSize: 11, marginTop: -4 }
       }}
     >
@@ -44,10 +50,10 @@ export default function TabsLayout() {
       {/* Hidden from bottom navigation but accessible via routing */}
       <Tabs.Screen name="messages" options={{ href: null, headerShown: false }} />
       <Tabs.Screen name="notifications" options={{ href: null, headerShown: false }} />
-      <Tabs.Screen name="sessions" options={{ href: null, title: t('nav.sessions'), headerLeft: () => <TouchableOpacity onPress={() => router.back()} style={{ paddingRight: 15 }}><Ionicons name="arrow-back" size={24} color="#374151" /></TouchableOpacity> }} />
-      <Tabs.Screen name="content" options={{ href: null, title: t('nav.content'), headerLeft: () => <TouchableOpacity onPress={() => router.back()} style={{ paddingRight: 15 }}><Ionicons name="arrow-back" size={24} color="#374151" /></TouchableOpacity> }} />
-      <Tabs.Screen name="students" options={{ href: null, title: t('nav.students'), headerLeft: () => <TouchableOpacity onPress={() => router.back()} style={{ paddingRight: 15 }}><Ionicons name="arrow-back" size={24} color="#374151" /></TouchableOpacity> }} />
-      <Tabs.Screen name="reports" options={{ href: null, title: t('nav.reports'), headerLeft: () => <TouchableOpacity onPress={() => router.back()} style={{ paddingRight: 15 }}><Ionicons name="arrow-back" size={24} color="#374151" /></TouchableOpacity> }} />
+      <Tabs.Screen name="sessions" options={{ href: null, title: t('nav.sessions'), headerLeft: () => <TouchableOpacity onPress={() => router.back()} style={{ paddingRight: 15 }}><Ionicons name="arrow-back" size={24} color={isDark ? "#f9fafb" : "#374151"} /></TouchableOpacity> }} />
+      <Tabs.Screen name="content" options={{ href: null, title: t('nav.content'), headerLeft: () => <TouchableOpacity onPress={() => router.back()} style={{ paddingRight: 15 }}><Ionicons name="arrow-back" size={24} color={isDark ? "#f9fafb" : "#374151"} /></TouchableOpacity> }} />
+      <Tabs.Screen name="students" options={{ href: null, title: t('nav.students'), headerLeft: () => <TouchableOpacity onPress={() => router.back()} style={{ paddingRight: 15 }}><Ionicons name="arrow-back" size={24} color={isDark ? "#f9fafb" : "#374151"} /></TouchableOpacity> }} />
+      <Tabs.Screen name="reports" options={{ href: null, title: t('nav.reports'), headerLeft: () => <TouchableOpacity onPress={() => router.back()} style={{ paddingRight: 15 }}><Ionicons name="arrow-back" size={24} color={isDark ? "#f9fafb" : "#374151"} /></TouchableOpacity> }} />
     </Tabs>
   );
 }

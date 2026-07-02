@@ -56,9 +56,9 @@ export default function MessagesScreen() {
   // If viewing a chat thread
   if (activePartnerId && activePartner) {
     return (
-      <View className="flex-1 bg-gray-50">
+      <View className="flex-1 bg-gray-50 dark:bg-gray-950">
         {/* Header */}
-        <View className="flex-row items-center gap-3 px-4 py-3 bg-white border-b border-gray-200">
+        <View className="flex-row items-center gap-3 px-4 py-3 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
           <TouchableOpacity onPress={() => setActivePartnerId(null)}>
             <Text className="text-primary-700 text-lg">→</Text>
           </TouchableOpacity>
@@ -66,7 +66,7 @@ export default function MessagesScreen() {
             <Text className="text-primary-700 font-bold">{activePartner.fullName?.charAt(0)}</Text>
           </View>
           <View>
-            <Text className="font-bold text-gray-900">{activePartner.fullName}</Text>
+            <Text className="font-bold text-gray-900 dark:text-white">{activePartner.fullName}</Text>
             <Text className="text-xs text-primary-600">{activePartner.role === 'TEACHER' ? 'معلم' : 'طالب'}</Text>
           </View>
         </View>
@@ -79,8 +79,8 @@ export default function MessagesScreen() {
             const isMe = msg.senderId === user?.id;
             return (
               <View className={`mb-3 ${isMe ? 'items-end' : 'items-start'}`}>
-                <View className={`max-w-[75%] rounded-2xl px-4 py-2.5 ${isMe ? 'bg-primary-700' : 'bg-white border border-gray-200'}`}>
-                  <Text className={`text-sm ${isMe ? 'text-white' : 'text-gray-800'}`}>{msg.content}</Text>
+                <View className={`max-w-[75%] rounded-2xl px-4 py-2.5 ${isMe ? 'bg-primary-700' : 'bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700'}`}>
+                  <Text className={`text-sm ${isMe ? 'text-white' : 'text-gray-800 dark:text-gray-200'}`}>{msg.content}</Text>
                   <Text className={`text-[10px] mt-1 ${isMe ? 'text-primary-200' : 'text-gray-400'}`}>
                     {new Date(msg.createdAt).toLocaleTimeString('ar-MA', { hour: '2-digit', minute: '2-digit' })}
                   </Text>
@@ -92,7 +92,7 @@ export default function MessagesScreen() {
         />
 
         {/* Input */}
-        <View className="flex-row items-center gap-2 px-4 py-3 bg-white border-t border-gray-200">
+        <View className="flex-row items-center gap-2 px-4 py-3 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
           <TextInput className="flex-1 bg-gray-100 rounded-full px-5 py-3 text-sm" placeholder="اكتب رسالة..." value={messageInput} onChangeText={setMessageInput} placeholderTextColor="#9ca3af" />
           <TouchableOpacity onPress={() => { if (messageInput.trim()) { sendMutation.mutate(messageInput.trim()); } }}
             disabled={!messageInput.trim() || sendMutation.isPending}
@@ -108,14 +108,14 @@ export default function MessagesScreen() {
   if (showNewChat) {
     const filtered = usersData?.users?.filter((u: any) => u.id !== user?.id && u.fullName.includes(searchQuery)) || [];
     return (
-      <View className="flex-1 bg-white">
-        <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-200">
-          <Text className="text-xl font-bold text-gray-900">محادثة جديدة</Text>
+      <View className="flex-1 bg-white dark:bg-gray-900">
+        <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+          <Text className="text-xl font-bold text-gray-900 dark:text-white">محادثة جديدة</Text>
           <TouchableOpacity onPress={() => { setShowNewChat(false); setSearchQuery(''); }}>
             <Text className="text-gray-400 text-xl">✕</Text>
           </TouchableOpacity>
         </View>
-        <View className="px-4 py-3 border-b border-gray-100">
+        <View className="px-4 py-3 border-b border-gray-100 dark:border-gray-800">
           <TextInput className="bg-gray-100 rounded-full px-5 py-3 text-sm" placeholder="ابحث عن اسم..." value={searchQuery} onChangeText={setSearchQuery} placeholderTextColor="#9ca3af" />
         </View>
         {usersLoading ? (
@@ -125,12 +125,12 @@ export default function MessagesScreen() {
         ) : (
           <FlatList data={filtered} renderItem={({ item: u }) => (
             <TouchableOpacity key={u.id} onPress={() => { setActivePartnerId(u.id); setShowNewChat(false); }}
-              className="flex-row items-center gap-3 px-4 py-3 border-b border-gray-100">
+              className="flex-row items-center gap-3 px-4 py-3 border-b border-gray-100 dark:border-gray-800">
               <View className="w-11 h-11 rounded-full bg-primary-100 items-center justify-center">
                 <Text className="text-primary-700 font-bold">{u.fullName.charAt(0)}</Text>
               </View>
               <View className="flex-1">
-                <Text className="font-bold text-gray-900">{u.fullName}</Text>
+                <Text className="font-bold text-gray-900 dark:text-white">{u.fullName}</Text>
                 <Text className="text-xs text-gray-500">{u.role === 'ADMIN' ? 'مدير' : u.role === 'TEACHER' ? 'معلم' : 'طالب'}</Text>
               </View>
             </TouchableOpacity>
@@ -142,13 +142,13 @@ export default function MessagesScreen() {
 
   // Conversations list
   return (
-    <ScrollView className="flex-1 bg-gray-50" refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}>
+    <ScrollView className="flex-1 bg-gray-50 dark:bg-gray-950" refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}>
       <View className="px-4 pt-4 pb-2 flex-row items-center justify-between">
         <View className="flex-row items-center gap-3">
-          <TouchableOpacity onPress={() => router.back()} className="w-10 h-10 items-center justify-center bg-white rounded-full shadow-sm">
-            <Ionicons name="arrow-back" size={20} color="#374151" />
+          <TouchableOpacity onPress={() => router.back()} className="w-10 h-10 items-center justify-center bg-white dark:bg-gray-900 rounded-full shadow-sm">
+            <Ionicons name="arrow-back" size={20} color="#6b7280" />
           </TouchableOpacity>
-          <Text className="text-2xl font-bold text-gray-900">الرسائل</Text>
+          <Text className="text-2xl font-bold text-gray-900 dark:text-white">الرسائل</Text>
         </View>
         <TouchableOpacity onPress={() => setShowNewChat(true)} className="w-10 h-10 rounded-full bg-primary-100 items-center justify-center">
           <Text className="text-primary-700 text-lg font-bold">+</Text>
@@ -164,7 +164,7 @@ export default function MessagesScreen() {
         <View className="px-4 pb-6">
           {conversations.map((conv) => (
             <TouchableOpacity key={conv.partner.id} onPress={() => setActivePartnerId(conv.partner.id)}
-              className="flex-row items-center gap-3 bg-white rounded-2xl p-4 border border-gray-100 mb-2 shadow-sm">
+              className="flex-row items-center gap-3 bg-white dark:bg-gray-900 rounded-2xl p-4 border border-gray-100 dark:border-gray-800 mb-2 shadow-sm">
               <View className="relative">
                 <View className="w-12 h-12 rounded-full bg-primary-100 items-center justify-center">
                   <Text className="text-primary-700 font-bold text-lg">{conv.partner.fullName.charAt(0)}</Text>
@@ -177,7 +177,7 @@ export default function MessagesScreen() {
               </View>
               <View className="flex-1">
                 <View className="flex-row justify-between items-center">
-                  <Text className="font-bold text-gray-900">{conv.partner.fullName}</Text>
+                  <Text className="font-bold text-gray-900 dark:text-white">{conv.partner.fullName}</Text>
                   {conv.lastMessage && (
                     <Text className="text-[10px] text-gray-400">{timeAgo(new Date(conv.lastMessage.createdAt))}</Text>
                   )}

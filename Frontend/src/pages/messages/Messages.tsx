@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiCall } from '../../services/api';
 import { useAuthStore } from '../../store/authStore';
-import { MessageSquare, Send, UserRound, Plus, X, Search, MessageSquarePlus } from 'lucide-react';
+import { MessageSquare, Send, UserRound, Plus, X, Search, MessageSquarePlus, Mic, Square } from 'lucide-react';
 
 
 type Conversation = {
@@ -45,6 +45,14 @@ export const Messages = () => {
   const [isNewChatModalOpen, setIsNewChatModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [audioUrl, setAudioUrl] = useState('');
+  
+  const timerRef = useRef<number | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+
   useEffect(() => {
     if (location.state?.openChatWith) {
       setActivePartnerId(location.state.openChatWith);
@@ -76,6 +84,7 @@ export const Messages = () => {
       apiCall('/messages', { method: 'POST', body: JSON.stringify({ recipientId: activePartnerId, content }) }),
     onSuccess: () => {
       setMessageInput('');
+      setAudioUrl('');
       qc.invalidateQueries({ queryKey: ['thread', activePartnerId] });
       qc.invalidateQueries({ queryKey: ['conversations'] });
     },
@@ -85,10 +94,55 @@ export const Messages = () => {
   const messages = threadData?.messages ?? [];
   const activePartner = threadData?.partner;
 
-  const handleSend = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!messageInput.trim() || !activePartnerId) return;
-    sendMutation.mutate(messageInput.trim());
+  const handleSend = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if ((!messageInput.trim() && !audioUrl) || !activePartnerId) return;
+    const content = audioUrl || messageInput.trim();
+    sendMutation.mutate(content);
+  };
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) audioChunksRef.current.push(event.data);
+      };
+
+      mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: mediaRecorder.mimeType || 'audio/webm' });
+        const reader = new FileReader();
+        reader.readAsDataURL(audioBlob);
+        reader.onloadend = () => setAudioUrl(reader.result as string);
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+      setRecordingTime(0);
+      timerRef.current = window.setInterval(() => {
+        setRecordingTime((prev) => prev + 1);
+      }, 1000);
+    } catch (err) {
+      console.error('Microphone access denied', err);
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+    }
+    setIsRecording(false);
+    if (timerRef.current) clearInterval(timerRef.current);
+  };
+
+  const formatTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+    const s = (seconds % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
   };
 
   return (
@@ -182,7 +236,11 @@ export const Messages = () => {
                     <div className={`max-w-[75%] rounded-2xl px-5 py-3 shadow-sm ${
                       isMe ? 'bg-emerald-600 text-white rounded-tl-sm' : 'bg-white border border-slate-200 text-slate-800 rounded-tr-sm'
                     }`}>
-                      <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                      {msg.content.startsWith('data:audio') ? (
+                        <audio src={msg.content} controls className="max-w-full sm:max-w-xs" />
+                      ) : (
+                        <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                      )}
                       <p className={`text-[10px] mt-1 text-left ${isMe ? 'text-emerald-100' : 'text-slate-400'}`}>
                         {new Date(msg.createdAt).toLocaleTimeString('ar-MA', { hour: '2-digit', minute: '2-digit' })}
                       </p>
@@ -194,22 +252,71 @@ export const Messages = () => {
 
             {/* Input */}
             <form onSubmit={handleSend} className="border-t border-slate-200 p-4 bg-white">
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  value={messageInput}
-                  onChange={(e) => setMessageInput(e.target.value)}
-                  placeholder="اكتب رسالة..."
-                  className="flex-1 rounded-full border border-slate-200 bg-slate-50 px-5 py-3 text-sm font-medium outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
-                />
-                <button
-                  type="submit"
-                  disabled={!messageInput.trim() || sendMutation.isPending}
-                  className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-600 text-white shadow-md transition hover:bg-emerald-700 disabled:opacity-50"
-                >
-                  <Send className="h-5 w-5 rtl:scale-x-[-1]" />
-                </button>
-              </div>
+              {isRecording ? (
+                <div className="flex items-center gap-4 bg-red-50 p-3 rounded-full border border-red-100">
+                  <div className="flex items-center gap-2 px-3">
+                    <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
+                    <span className="font-mono font-bold text-red-600">{formatTime(recordingTime)}</span>
+                  </div>
+                  <div className="flex-1 text-center text-sm font-bold text-red-500 animate-pulse">
+                    جاري التسجيل...
+                  </div>
+                  <button
+                    type="button"
+                    onClick={stopRecording}
+                    className="flex h-10 w-10 items-center justify-center rounded-full bg-red-500 text-white shadow-sm transition hover:bg-red-600"
+                  >
+                    <Square className="h-4 w-4 fill-current" />
+                  </button>
+                </div>
+              ) : audioUrl ? (
+                <div className="flex items-center gap-3 bg-emerald-50 p-2 rounded-full border border-emerald-100">
+                  <button
+                    type="button"
+                    onClick={() => setAudioUrl('')}
+                    className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100 text-red-600 transition hover:bg-red-200 shrink-0"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                  <audio src={audioUrl} controls className="h-10 flex-1 max-w-[200px] sm:max-w-xs" />
+                  <div className="flex-1" />
+                  <button
+                    type="button"
+                    onClick={() => handleSend()}
+                    disabled={sendMutation.isPending}
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-white shadow-md transition hover:bg-emerald-700 disabled:opacity-50"
+                  >
+                    <Send className="h-4 w-4 rtl:scale-x-[-1]" />
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={messageInput}
+                    onChange={(e) => setMessageInput(e.target.value)}
+                    placeholder="اكتب رسالة..."
+                    className="flex-1 rounded-full border border-slate-200 bg-slate-50 px-5 py-3 text-sm font-medium outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                  />
+                  {!messageInput.trim() ? (
+                    <button
+                      type="button"
+                      onClick={startRecording}
+                      className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition hover:bg-slate-200 hover:text-slate-900"
+                    >
+                      <Mic className="h-5 w-5" />
+                    </button>
+                  ) : (
+                    <button
+                      type="submit"
+                      disabled={sendMutation.isPending}
+                      className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-white shadow-md transition hover:bg-emerald-700 disabled:opacity-50"
+                    >
+                      <Send className="h-5 w-5 rtl:scale-x-[-1]" />
+                    </button>
+                  )}
+                </div>
+              )}
             </form>
           </>
         )}

@@ -95,7 +95,7 @@ export default function SubmitTaskScreen() {
 
   if (isLoading) {
     return (
-      <View className="flex-1 items-center justify-center bg-white">
+      <View className="flex-1 items-center justify-center bg-white dark:bg-gray-900">
         <ActivityIndicator size="large" color="#16a34a" />
       </View>
     );
@@ -103,14 +103,14 @@ export default function SubmitTaskScreen() {
 
   if (!data) {
     return (
-      <View className="flex-1 items-center justify-center bg-white">
+      <View className="flex-1 items-center justify-center bg-white dark:bg-gray-900">
         <Text className="text-gray-500 font-bold">المهمة غير موجودة</Text>
       </View>
     );
   }
 
   return (
-    <ScrollView className="flex-1 bg-gray-50" contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
+    <ScrollView className="flex-1 bg-gray-50 dark:bg-gray-950" contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
       {/* Task details */}
       <View className="bg-emerald-50 rounded-2xl p-5 mb-6">
         <View className="flex-row items-center mb-3" style={{ gap: 8 }}>
@@ -129,9 +129,9 @@ export default function SubmitTaskScreen() {
       ) : null}
 
       {/* Recording area */}
-      <View className="bg-white rounded-3xl border border-gray-200 p-8 items-center shadow-sm mb-6">
+      <View className="bg-white dark:bg-gray-900 rounded-3xl border border-gray-200 dark:border-gray-700 p-8 items-center shadow-sm mb-6">
         {/* Record button */}
-        <View className={`h-28 w-28 rounded-full items-center justify-center mb-6 ${isRecording ? 'bg-red-50' : 'bg-gray-50'}`}>
+        <View className={`h-28 w-28 rounded-full items-center justify-center mb-6 ${isRecording ? 'bg-red-50' : 'bg-gray-50 dark:bg-gray-950'}`}>
           <TouchableOpacity
             onPress={isRecording ? stopRecording : startRecording}
             className={`h-20 w-20 rounded-full items-center justify-center ${isRecording ? 'bg-red-500' : 'bg-emerald-600'}`}
@@ -160,9 +160,9 @@ export default function SubmitTaskScreen() {
           <View className="items-center" style={{ gap: 16 }}>
             <Text className="text-sm font-bold text-gray-500">اضغط للبدء في تسجيل تسميعك</Text>
             <View className="flex-row items-center w-full my-2" style={{ gap: 12 }}>
-              <View className="flex-1 border-t border-gray-200" />
+              <View className="flex-1 border-t border-gray-200 dark:border-gray-700" />
               <Text className="text-xs font-bold text-gray-400">أو</Text>
-              <View className="flex-1 border-t border-gray-200" />
+              <View className="flex-1 border-t border-gray-200 dark:border-gray-700" />
             </View>
             <TouchableOpacity
               onPress={pickAudioFile}

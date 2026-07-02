@@ -89,7 +89,7 @@ export const getThread = async (req: AuthRequest, res: Response): Promise<void> 
     data: { isRead: true },
   });
 
-  const partner = await prisma.user.findUnique({
+  const partner = await prisma.profile.findUnique({
     where: { id: partnerId },
     select: { id: true, fullName: true, role: true, avatarUrl: true },
   });
@@ -105,7 +105,7 @@ export const sendMessage = async (req: AuthRequest, res: Response): Promise<void
 
     if (senderId === recipientId) { sendError(res, 400, 'لا يمكنك إرسال رسالة لنفسك'); return; }
 
-    const recipient = await prisma.user.findUnique({ where: { id: recipientId }, select: { id: true } });
+    const recipient = await prisma.profile.findUnique({ where: { id: recipientId }, select: { id: true } });
     if (!recipient) { sendError(res, 404, 'المستلم غير موجود'); return; }
 
     const message = await prisma.message.create({
